@@ -1,20 +1,29 @@
 body {
-    font-family: Arial, sans-serif;
-    background-color: #f4f4f4;
-    color: #333;
     margin: 0;
-    padding: 0;
+    font-family: Arial, sans-serif;
+    background: #f4f7fb;
+    color: #333;
 }
 
 header {
-    background: #003366;
+    background: linear-gradient(135deg, #004aad, #008cff);
     color: white;
     text-align: center;
-    padding: 25px;
+    padding: 50px 20px;
+}
+
+header h1 {
+    margin: 0;
+    font-size: 38px;
+}
+
+header p {
+    font-size: 18px;
+    margin-top: 10px;
 }
 
 nav {
-    background: #0055aa;
+    background: #002d62;
     text-align: center;
     padding: 15px;
 }
@@ -27,37 +36,35 @@ nav a {
 }
 
 nav a:hover {
-    color: yellow;
+    color: gold;
 }
 
 main {
-    max-width: 900px;
-    margin: 20px auto;
-    background: white;
+    max-width: 1000px;
+    margin: auto;
     padding: 20px;
-    border-radius: 10px;
+}
+
+section {
+    background: white;
+    border-radius: 12px;
+    padding: 30px;
+    margin-top: 20px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
 }
 
 .story-preview {
-    border-bottom: 1px solid #ddd;
-    padding: 15px 0;
-}
-
-.story-preview a {
-    color: #0055aa;
-    text-decoration: none;
-    font-weight: bold;
-}
-
-.story-preview a:hover {
-    color: red;
+    background: white;
+    border-radius: 10px;
+    padding: 20px;
+    margin-top: 20px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
 }
 
 footer {
-    background: #003366;
+    background: #002d62;
     color: white;
     text-align: center;
-    padding: 15px;
-    margin-top: 20px;
+    padding: 20px;
+    margin-top: 40px;
 }
-
