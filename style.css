@@ -179,3 +179,19 @@ nav a{
 nav a:hover{
     color:#FFD700;
 }
+footer{
+    background:#002b5c;
+    color:white;
+    text-align:center;
+    padding:40px 20px;
+}
+
+footer a{
+    color:#FFD700;
+    text-decoration:none;
+    margin:0 8px;
+}
+
+footer a:hover{
+    text-decoration:underline;
+}
