@@ -144,4 +144,38 @@ footer {
 .feature-card h3 {
     color: #0057b8;
 }
+.top-header{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    background:#003366;
+    padding:20px;
+    color:white;
+    flex-wrap:wrap;
+}
 
+.logo{
+    font-size:28px;
+    font-weight:bold;
+}
+
+.logo span{
+    color:#FFD700;
+}
+
+nav{
+    display:flex;
+    gap:20px;
+    flex-wrap:wrap;
+}
+
+nav a{
+    color:white;
+    text-decoration:none;
+    font-weight:bold;
+    transition:0.3s;
+}
+
+nav a:hover{
+    color:#FFD700;
+}
