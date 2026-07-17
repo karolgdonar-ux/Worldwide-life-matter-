@@ -68,3 +68,38 @@ footer {
     padding: 20px;
     margin-top: 40px;
 }
+.hero {
+    text-align: center;
+    padding: 80px 20px;
+    background: linear-gradient(135deg, #0057b8, #00a8ff);
+    color: white;
+    border-radius: 15px;
+    margin-top: 20px;
+}
+
+.hero h2 {
+    font-size: 42px;
+    margin-bottom: 15px;
+}
+
+.hero p {
+    font-size: 20px;
+    max-width: 700px;
+    margin: auto;
+}
+
+.btn {
+    display: inline-block;
+    margin-top: 25px;
+    background: white;
+    color: #0057b8;
+    padding: 15px 30px;
+    text-decoration: none;
+    border-radius: 30px;
+    font-weight: bold;
+}
+
+.btn:hover {
+    background: gold;
+    color: black;
+}
