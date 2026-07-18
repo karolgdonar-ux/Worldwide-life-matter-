@@ -1,3 +1,4 @@
+alert("script.js loaded!");
 const form = document.getElementById("signup-form");
 
 if (form) {
