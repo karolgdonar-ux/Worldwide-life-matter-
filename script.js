@@ -9,14 +9,14 @@ if (form) {
     const message = document.getElementById("message");
 
     const { error } = await window.supabaseClient.auth.signUp({
-      password
+      email: email,
+      password: password
     });
 
     if (error) {
       message.textContent = "Error: " + error.message;
     } else {
-      message.textContent =
-        "Success! Check your email to confirm your account.";
+      message.textContent = "Success! Check your email to confirm your account.";
     }
   });
 }
