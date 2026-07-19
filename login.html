@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login - Worldwide Life Matter</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header class="top-header">
+  <div class="logo">🌍 Worldwide Life Matter</div>
+</header>
+
+<main>
+  <h1>Login</h1>
+
+  <form id="login-form">
+    <input type="email" id="email" placeholder="Email" required>
+    <br><br>
+
+    <input type="password" id="password" placeholder="Password" required>
+    <br><br>
+
+    <button type="submit">Login</button>
+  </form>
+
+  <p id="message"></p>
+
+  <p>
+    Don't have an account?
+    <a href="signup.html">Create one here</a>
+  </p>
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="supabase.js"></script>
+<script src="login.js"></script>
+
+</body>
+</html>
