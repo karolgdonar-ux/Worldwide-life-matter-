@@ -1,4 +1,6 @@
 alert("script.js loaded!");
+alert("window.supabase = " + typeof window.supabase);
+alert("window.supabaseClient = " + typeof window.supabaseClient);
 
 const form = document.getElementById("signup-form");
 
@@ -6,16 +8,14 @@ if (form) {
   form.addEventListener("submit", async (event) => {
     event.preventDefault();
 
-    alert("Create Account button clicked!");
-
     const email = document.getElementById("email").value;
     const password = document.getElementById("password").value;
     const message = document.getElementById("message");
 
     try {
       const { data, error } = await window.supabaseClient.auth.signUp({
-        email,
-        password
+        email: email,
+        password: password
       });
 
       console.log(data);
@@ -29,11 +29,8 @@ if (form) {
         alert("Signup successful!");
       }
     } catch (err) {
-      console.error(err);
       message.textContent = err.message;
       alert("JavaScript Error: " + err.message);
     }
   });
 }
-alert(typeof window.supabase);
-alert(typeof window.supabaseClient);
