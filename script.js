@@ -1,7 +1,3 @@
-alert("script.js loaded!");
-alert("window.supabase = " + typeof window.supabase);
-alert("window.supabaseClient = " + typeof window.supabaseClient);
-
 const form = document.getElementById("signup-form");
 
 if (form) {
@@ -15,21 +11,22 @@ if (form) {
     try {
       const { data, error } = await window.supabaseClient.auth.signUp({
         email: email,
-        password: password
+        password: password,
+        options: {
+          emailRedirectTo: "https://karolgdonar-ux.github.io/Worldwide-life-matter-/"
+        }
       });
-
-      console.log(data);
-      console.log(error);
 
       if (error) {
         message.textContent = "Error: " + error.message;
-        alert(error.message);
+        alert("Error: " + error.message);
       } else {
-        message.textContent = "Success! Check your email to confirm your account.";
-        alert("Signup successful!");
+        message.textContent =
+          "Success! Check your email to confirm your account.";
+        alert("Signup successful! Check your email.");
       }
     } catch (err) {
-      message.textContent = err.message;
+      message.textContent = "JavaScript Error: " + err.message;
       alert("JavaScript Error: " + err.message);
     }
   });
