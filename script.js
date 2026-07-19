@@ -35,3 +35,5 @@ if (form) {
     }
   });
 }
+alert(typeof window.supabase);
+alert(typeof window.supabaseClient);
