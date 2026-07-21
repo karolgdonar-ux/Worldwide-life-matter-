@@ -1,13 +1,39 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Submit Your Story</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Submit Story - Worldwide Life Matter</title>
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <h1>Submit Your Story</h1>
-    <p>This page will allow visitors to submit their stories in the future.</p>
 
-    <a href="index.html">Home</a>
+<header class="top-header">
+  <div class="logo">🌍 Worldwide Life Matter</div>
+</header>
+
+<main>
+  <h1>Share Your Story</h1>
+
+  <form id="story-form">
+    <input type="text" id="title" placeholder="Story Title" required>
+    <br><br>
+
+    <textarea id="content" placeholder="Write your story here..." rows="8" required></textarea>
+    <br><br>
+
+    <input type="text" id="author" placeholder="Your Name (optional)">
+    <br><br>
+
+    <button type="submit">Submit Story</button>
+  </form>
+
+  <p id="message"></p>
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="supabase.js"></script>
+<script src="submit.js"></script>
+
 </body>
 </html>
-
