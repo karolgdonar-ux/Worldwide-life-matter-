@@ -22,27 +22,32 @@
   <p><a href="index.html">← Back to Home</a></p>
 </main>
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="supabase.js"></script>
 
 <script>
 async function loadStories() {
+  const container = document.getElementById("stories-list");
+
   const { data, error } = await window.supabaseClient
     .from("stories")
     .select("*")
     .order("created_at", { ascending: false });
 
-  const container = document.getElementById("stories-list");
-
   if (error) {
-  console.error(error);
-  container.innerHTML = "<p>Error: " + error.message + "</p>";
-  return;
-}
+    console.error(error);
+    container.innerHTML = "<p>Error: " + error.message + "</p>";
+    return;
+  }
+
+  if (!data || data.length === 0) {
+    container.innerHTML = "<p>No stories have been shared yet.</p>";
+    return;
+  }
 
   container.innerHTML = "";
 
-  data.forEach(story => {
+  data.forEach((story) => {
     container.innerHTML += `
       <div class="story">
         <h2>${story.title}</h2>
