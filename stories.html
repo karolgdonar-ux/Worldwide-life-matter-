@@ -35,9 +35,10 @@ async function loadStories() {
   const container = document.getElementById("stories-list");
 
   if (error) {
-    container.innerHTML = "<p>Error loading stories.</p>";
-    return;
-  }
+  console.error(error);
+  container.innerHTML = "<p>Error: " + error.message + "</p>";
+  return;
+}
 
   container.innerHTML = "";
 
