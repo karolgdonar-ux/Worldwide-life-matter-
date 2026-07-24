@@ -36,15 +36,14 @@ async function loadStories() {
 
   if (error) {
     console.error(error);
-    container.innerHTML = "<p>Error: " + error.message + "</p>";
+    container.innerHTML = "<p>Error loading stories: " + error.message + "</p>";
     return;
   }
 
-  container.innerHTML =
-  "<pre>" +
-  JSON.stringify({ data, error }, null, 2) +
-  "</pre>";
-return;
+  if (!data || data.length === 0) {
+    container.innerHTML = "<p>No stories have been shared yet.</p>";
+    return;
+  }
 
   container.innerHTML = "";
 
@@ -65,16 +64,3 @@ loadStories();
 
 </body>
 </html>
-async function loadStories() {
-  const { data, error } = await window.supabaseClient
-    .from("stories")
-    .select("*");
-
-  console.log("Data:", data);
-  console.log("Error:", error);
-
-  document.getElementById("stories-list").innerHTML =
-    "<pre>" + JSON.stringify({ data, error }, null, 2) + "</pre>";
-}
-
-loadStories();
