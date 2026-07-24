@@ -4,14 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Worldwide Life Matter</title>
-
     <link rel="stylesheet" href="style.css">
 </head>
-
 <body>
 
 <header class="top-header">
-
     <div class="logo">
         🌍 <span>Worldwide Life Matter</span>
     </div>
@@ -21,11 +18,12 @@
         <a href="stories.html">Stories</a>
         <a href="about.html">About</a>
         <a href="submit.html">Submit</a>
+        <a href="signup.html">Sign Up</a>
+        <a href="login.html">Login</a>
+        <button onclick="logout()">Logout</button>
     </nav>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="supabase.js"></script>
-
 </header>
+
 <main>
 
 <section>
@@ -46,7 +44,7 @@
     </p>
 </section>
 
- <h2>Latest Stories</h2>
+<h2>Latest Stories</h2>
 
 <div class="story-preview">
     <h3>🌍 A Young Girl's Resilience</h3>
@@ -67,6 +65,7 @@
 </div>
 
 </main>
+
 <footer>
 
 <h3>Worldwide Life Matter</h3>
@@ -83,31 +82,11 @@
 
 <p>© 2026 Worldwide Life Matter. All rights reserved.</p>
 
-</footer>    <h2>Every Story Matters</h2>
+</footer>
 
-    <p>
-        Welcome to Worldwide Life Matter, where people from every part of the world
-        can share their experiences, inspire hope, and make their voices heard.
-    </p>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="supabase.js"></script>
+<script src="logout.js"></script>
 
-    <a href="submit.html" class="btn">Share Your Story</a>
-</section>
-<section class="features">
-
-    <div class="feature-card">
-        <h3>🌍 Global Stories</h3>
-        <p>Read inspiring stories from people around the world.</p>
-    </div>
-
-    <div class="feature-card">
-        <h3>❤️ Share Your Voice</h3>
-        <p>Tell your story and inspire others with your experiences.</p>
-    </div>
-
-    <div class="feature-card">
-        <h3>🤝 Build Community</h3>
-        <p>Connect people through understanding, compassion, and hope.</p>
-    </div>
-
-</section>
-
+</body>
+</html>
