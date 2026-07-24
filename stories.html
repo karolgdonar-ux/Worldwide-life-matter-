@@ -65,3 +65,16 @@ loadStories();
 
 </body>
 </html>
+async function loadStories() {
+  const { data, error } = await window.supabaseClient
+    .from("stories")
+    .select("*");
+
+  console.log("Data:", data);
+  console.log("Error:", error);
+
+  document.getElementById("stories-list").innerHTML =
+    "<pre>" + JSON.stringify({ data, error }, null, 2) + "</pre>";
+}
+
+loadStories();
