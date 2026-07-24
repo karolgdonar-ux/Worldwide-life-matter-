@@ -9,29 +9,35 @@ if (form) {
     const author = document.getElementById("author").value;
     const message = document.getElementById("message");
 
-    try {
-      const { error } = await window.supabaseClient
-        .from("stories")
-        .insert([
-          {
-            title: title,
-            content: content,
-            author: author
-          }
-        ]);
+    const {
+      data: { user },
+      error: userError,
+    } = await window.supabaseClient.auth.getUser();
 
-      if (error) {
-        message.textContent = "Error: " + error.message;
-        alert("Error: " + error.message);
-      } else {
-        message.textContent = "Story submitted successfully!";
-        alert("Thank you for sharing your story!");
+    if (userError || !user) {
+      alert("Please log in before submitting a story.");
+      window.location.href = "login.html";
+      return;
+    }
 
-        form.reset();
-      }
-    } catch (err) {
-      message.textContent = "JavaScript Error: " + err.message;
-      alert("JavaScript Error: " + err.message);
+    const { error } = await window.supabaseClient
+      .from("stories")
+      .insert([
+        {
+          title,
+          content,
+          author,
+          user_id: user.id
+        }
+      ]);
+
+    if (error) {
+      message.textContent = "Error: " + error.message;
+      alert("Error: " + error.message);
+    } else {
+      message.textContent = "Story submitted successfully!";
+      alert("Thank you for sharing your story!");
+      form.reset();
     }
   });
 }
