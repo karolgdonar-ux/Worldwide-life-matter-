@@ -40,10 +40,11 @@ async function loadStories() {
     return;
   }
 
-  if (!data || data.length === 0) {
-    container.innerHTML = "<p>No stories have been shared yet.</p>";
-    return;
-  }
+  container.innerHTML =
+  "<pre>" +
+  JSON.stringify({ data, error }, null, 2) +
+  "</pre>";
+return;
 
   container.innerHTML = "";
 
