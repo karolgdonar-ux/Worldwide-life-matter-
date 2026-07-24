@@ -21,3 +21,7 @@ async function loadProfile() {
 }
 
 loadProfile();
+document.getElementById("logout-btn").addEventListener("click", async () => {
+  await window.supabaseClient.auth.signOut();
+  window.location.href = "login.html";
+});
