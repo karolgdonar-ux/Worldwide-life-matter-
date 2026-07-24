@@ -36,16 +36,23 @@ async function loadProfile() {
 
   container.innerHTML = "";
 
-  stories.forEach((story) => {
-    container.innerHTML += `
-      <div class="story">
-        <h2>${story.title}</h2>
-        <p>${story.content}</p>
-        <small>By: ${story.author}</small>
-        <hr>
-      </div>
-    `;
-  });
+   stories.forEach((story) => {
+  container.innerHTML += `
+    <div class="story">
+      <h2>${story.title}</h2>
+      <p>${story.content}</p>
+      <small>By: ${story.author}</small>
+      <br><br>
+
+      <button onclick="editStory('${story.id}')">✏️ Edit</button>
+
+      <button onclick="deleteStory('${story.id}')">🗑️ Delete</button>
+
+      <hr>
+    </div>
+  `;
+});
+
 }
 
 loadProfile();
@@ -54,3 +61,24 @@ document.getElementById("logout-btn").addEventListener("click", async () => {
   await window.supabaseClient.auth.signOut();
   window.location.href = "login.html";
 });
+async function deleteStory(id) {
+  const confirmed = confirm("Are you sure you want to delete this story?");
+
+  if (!confirmed) return;
+
+  const { error } = await window.supabaseClient
+    .from("stories")
+    .delete()
+    .eq("id", id);
+
+  if (error) {
+    alert("Error deleting story: " + error.message);
+  } else {
+    alert("Story deleted successfully!");
+    location.reload();
+  }
+}
+
+function editStory(id) {
+  window.location.href = "edit-story.html?id=" + id;
+}
