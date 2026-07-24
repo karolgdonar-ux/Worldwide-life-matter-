@@ -12,10 +12,10 @@ async function loadStory() {
     .single();
 
   if (error) {
-    message.textContent = "Error loading story.";
-    return;
-  }
-
+  console.error(error);
+  message.textContent = "Error: " + error.message;
+  return;
+}
   document.getElementById("title").value = data.title;
   document.getElementById("content").value = data.content;
 }
