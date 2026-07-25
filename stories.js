@@ -8,6 +8,9 @@ async function getCurrentUser() {
 async function loadStories() {
 
   const container = document.getElementById("stories-list");
+const search =
+
+  document.getElementById("search").value.toLowerCase();
 
   const { data: stories, error } =
     await window.supabaseClient
@@ -31,6 +34,13 @@ async function loadStories() {
 
   for (const story of stories) {
 
+if (
+  !story.title.toLowerCase().includes(search) &&
+  !story.content.toLowerCase().includes(search) &&
+  !(story.author || "").toLowerCase().includes(search)
+) {
+  continue;
+}
     const { count } =
       await window.supabaseClient
         .from("likes")
@@ -182,4 +192,10 @@ async function addComment(storyId) {
   loadStories();
 }
 
-getCurrentUser().then(loadStories);
+getCurrentUser().then(() => {
+  loadStories();
+
+  document
+    .getElementById("search")
+    .addEventListener("input", loadStories);
+});
