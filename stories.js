@@ -1,22 +1,30 @@
 let currentUser = null;
 
 async function getCurrentUser() {
-  const { data } = await window.supabaseClient.auth.getUser();
+  const { data } =
+    await window.supabaseClient.auth.getUser();
+
   currentUser = data.user;
 }
 
 async function loadStories() {
 
-  const container = document.getElementById("stories-list");
-const search =
+  const container =
+    document.getElementById("stories-list");
 
-  document.getElementById("search").value.toLowerCase();
+  const search =
+    document
+      .getElementById("search")
+      .value
+      .toLowerCase();
 
   const { data: stories, error } =
     await window.supabaseClient
       .from("stories")
       .select("*")
-      .order("created_at", { ascending: false });
+      .order("created_at", {
+        ascending: false
+      });
 
   if (error) {
     container.innerHTML =
@@ -34,13 +42,15 @@ const search =
 
   for (const story of stories) {
 
-if (
-  !story.title.toLowerCase().includes(search) &&
-  !story.content.toLowerCase().includes(search) &&
-  !(story.author || "").toLowerCase().includes(search)
-) {
-  continue;
-}
+    if (
+      !story.title.toLowerCase().includes(search) &&
+      !story.content.toLowerCase().includes(search) &&
+      !(story.author || "")
+        .toLowerCase()
+        .includes(search)
+    ) {
+      continue;
+    }
     const { count } =
       await window.supabaseClient
         .from("likes")
@@ -63,30 +73,48 @@ if (
 
       liked = data.length > 0;
     }
+
     const { data: comments } =
       await window.supabaseClient
         .from("comments")
         .select("*")
         .eq("story_id", story.id)
-        .order("created_at", { ascending: true });
+        .order("created_at", {
+          ascending: true
+        });
 
     let commentsHtml = "";
 
     if (comments && comments.length > 0) {
+
       comments.forEach(comment => {
+
         commentsHtml += `
           <div class="comment">
-            <strong>${comment.author || "Anonymous"}</strong><br>
+
+            <strong>
+              ${comment.author || "Anonymous"}
+            </strong>
+
+            <br>
+
             ${comment.comment}
+
             <hr>
+
           </div>
         `;
-      });
-    } else {
-      commentsHtml = "<p>No comments yet.</p>";
-    }
 
+      });
+
+    } else {
+
+      commentsHtml =
+        "<p>No comments yet.</p>";
+
+    }
     container.innerHTML += `
+
       <div class="story">
 
         <h2>${story.title}</h2>
@@ -103,7 +131,9 @@ if (
           ${liked ? "💔 Unlike" : "❤️ Like"}
         </button>
 
-        <span>${count || 0} Likes</span>
+        <span>
+          ${count || 0} Likes
+        </span>
 
         <h3>Comments</h3>
 
@@ -117,20 +147,23 @@ if (
               placeholder="Write a comment..."
             ></textarea>
 
-            <br>
+            <br><br>
 
             <button onclick="addComment('${story.id}')">
               Post Comment
             </button>
-          `
-            : "<p><em>Log in to comment.</em></p>"
+            `
+            : `<p><em>Log in to comment.</em></p>`
         }
 
         <hr>
 
       </div>
+
     `;
+
   }
+
 }
 async function toggleLike(storyId) {
 
@@ -166,12 +199,19 @@ async function toggleLike(storyId) {
   }
 
   loadStories();
-}
 
+}
 async function addComment(storyId) {
 
+  if (!currentUser) {
+    alert("Please log in first.");
+    return;
+  }
+
   const box =
-    document.getElementById("comment-" + storyId);
+    document.getElementById(
+      "comment-" + storyId
+    );
 
   const comment = box.value.trim();
 
@@ -190,12 +230,22 @@ async function addComment(storyId) {
     });
 
   loadStories();
-}
 
+}
 getCurrentUser().then(() => {
+
   loadStories();
 
-  document
-    .getElementById("search")
-    .addEventListener("input", loadStories);
+  const search =
+    document.getElementById("search");
+
+  if (search) {
+
+    search.addEventListener(
+      "input",
+      loadStories
+    );
+
+  }
+
 });
