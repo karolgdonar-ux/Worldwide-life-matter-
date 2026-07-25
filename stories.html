@@ -10,56 +10,156 @@
 
 <header class="top-header">
   <div class="logo">🌍 Worldwide Life Matter</div>
+
+  <nav>
+    <a href="index.html">Home</a>
+    <a href="stories.html">Stories</a>
+    <a href="submit.html">Submit</a>
+    <a href="profile.html">My Profile</a>
+  </nav>
 </header>
 
 <main>
-  <h1>Stories</h1>
 
-  <div id="stories-list">
-    <p>Loading stories...</p>
-  </div>
+<h1>Stories</h1>
 
-  <p><a href="index.html">← Back to Home</a></p>
+<div id="stories-list">
+  <p>Loading stories...</p>
+</div>
+
+<p>
+  <a href="index.html">← Back to Home</a>
+</p>
+
 </main>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="supabase.js"></script>
 
 <script>
+
+let currentUser = null;
+
+async function getCurrentUser() {
+  const { data } = await window.supabaseClient.auth.getUser();
+  currentUser = data.user;
+}
+
 async function loadStories() {
+
   const container = document.getElementById("stories-list");
 
-  const { data, error } = await window.supabaseClient
-    .from("stories")
-    .select("*")
-    .order("created_at", { ascending: false });
+  const { data: stories, error } =
+    await window.supabaseClient
+      .from("stories")
+      .select("*")
+      .order("created_at", { ascending: false });
 
   if (error) {
-    console.error(error);
-    container.innerHTML = "<p>Error loading stories: " + error.message + "</p>";
+    container.innerHTML =
+      "<p>Error loading stories.</p>";
     return;
   }
 
-  if (!data || data.length === 0) {
-    container.innerHTML = "<p>No stories have been shared yet.</p>";
+  if (!stories || stories.length === 0) {
+    container.innerHTML =
+      "<p>No stories have been shared yet.</p>";
     return;
   }
 
   container.innerHTML = "";
 
-  data.forEach((story) => {
+  for (const story of stories) {
+
+    const { count } =
+      await window.supabaseClient
+        .from("likes")
+        .select("*", {
+          count: "exact",
+          head: true
+        })
+        .eq("story_id", story.id);
+
+    let liked = false;
+
+    if (currentUser) {
+
+      const { data } =
+        await window.supabaseClient
+          .from("likes")
+          .select("*")
+          .eq("story_id", story.id)
+          .eq("user_id", currentUser.id);
+
+      liked = data.length > 0;
+    }
+
     container.innerHTML += `
       <div class="story">
+
         <h2>${story.title}</h2>
+
         <p>${story.content}</p>
-        <small>By: ${story.author || "Anonymous"}</small>
+
+        <small>
+          By:
+          ${story.author || "Anonymous"}
+        </small>
+
+        <br><br>
+        <button onclick="toggleLike('${story.id}')">
+          ${liked ? "💔 Unlike" : "❤️ Like"}
+        </button>
+
+        <span>
+          ${count || 0} Likes
+        </span>
+
         <hr>
+
       </div>
     `;
-  });
+  }
 }
 
-loadStories();
+async function toggleLike(storyId) {
+
+  if (!currentUser) {
+    alert("Please log in first.");
+    return;
+  }
+
+  const { data } =
+    await window.supabaseClient
+      .from("likes")
+      .select("*")
+      .eq("story_id", storyId)
+      .eq("user_id", currentUser.id);
+
+  if (data.length > 0) {
+
+    await window.supabaseClient
+      .from("likes")
+      .delete()
+      .eq("story_id", storyId)
+      .eq("user_id", currentUser.id);
+
+  } else {
+
+    await window.supabaseClient
+      .from("likes")
+      .insert({
+        story_id: storyId,
+        user_id: currentUser.id
+      });
+
+  }
+
+  loadStories();
+}
+
+getCurrentUser().then(loadStories);
+
 </script>
 
 </body>
