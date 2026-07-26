@@ -2,6 +2,7 @@ const form = document.getElementById("story-form");
 
 if (form) {
   form.addEventListener("submit", async (event) => {
+alert("Submit button clicked!");
     event.preventDefault();
 
     const title = document.getElementById("title").value;
