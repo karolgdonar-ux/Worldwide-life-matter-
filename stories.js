@@ -117,7 +117,9 @@ async function loadStories() {
 
       <div class="story">
 
-        <h2>${story.title}</h2>
+        <p><strong>Category:</strong> ${story.category || "Other"}</p>
+
+<h2>${story.title}</h2>
 
         <p>${story.content}</p>
 

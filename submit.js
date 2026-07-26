@@ -6,6 +6,7 @@ if (form) {
 
     const title = document.getElementById("title").value;
     const content = document.getElementById("content").value;
+    const category = document.getElementById("category").value;
     const author = document.getElementById("author").value;
     const message = document.getElementById("message");
 
@@ -26,6 +27,7 @@ if (form) {
         {
           title,
           content,
+          category,
           author,
           user_id: user.id
         }
