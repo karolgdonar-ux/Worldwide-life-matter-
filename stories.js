@@ -51,6 +51,7 @@ async function loadStories() {
     ) {
       continue;
     }
+
     const { count } =
       await window.supabaseClient
         .from("likes")
@@ -66,25 +67,24 @@ async function loadStories() {
 
       const { data } =
         await window.supabaseClient
-          .from("likes")
-          .select("*")
-          .eq("story_id", story.id)
-          .eq("user_id", currentUser.id);
+        .from("likes")
+        .select("*")
+        .eq("story_id", story.id)
+        .eq("user_id", currentUser.id);
 
       liked = data.length > 0;
     }
 
     const { data: comments } =
       await window.supabaseClient
-        .from("comments")
-        .select("*")
-        .eq("story_id", story.id)
-        .order("created_at", {
-          ascending: true
-        });
+      .from("comments")
+      .select("*")
+      .eq("story_id", story.id)
+      .order("created_at", {
+        ascending: true
+      });
 
     let commentsHtml = "";
-
     if (comments && comments.length > 0) {
 
       comments.forEach(comment => {
@@ -113,24 +113,28 @@ async function loadStories() {
         "<p>No comments yet.</p>";
 
     }
+
     container.innerHTML += `
 
-      <div class="story"
-${
-  story.image_url
-    ? `
-      <img
-        src="${story.image_url}"
-        alt="Story Image"
-        class="story-image"
-      >
-    `
-    : ""
-}
+      <div class="story">
 
-<p><strong>Category:</strong> ${story.category || "Other"}</p>
+        ${
+          story.image_url
+            ? `
+              <img
+                src="${story.image_url}"
+                alt="Story Image"
+                class="story-image"
+              >
+            `
+            : ""
+        }
 
-<h2>${story.title}</h2>
+        <p><strong>Category:</strong> ${story.category || "Other"}</p>
+
+        <h2>${story.title}</h2>
+
+        <p>${story.content}</p>
 
         <small>
           By: ${story.author || "Anonymous"}
@@ -176,6 +180,7 @@ ${
   }
 
 }
+
 async function toggleLike(storyId) {
 
   if (!currentUser) {
@@ -202,16 +207,19 @@ async function toggleLike(storyId) {
 
     await window.supabaseClient
       .from("likes")
-      .insert({
-        story_id: storyId,
-        user_id: currentUser.id
-      });
+      .insert([
+        {
+          story_id: storyId,
+          user_id: currentUser.id
+        }
+      ]);
 
   }
 
   loadStories();
 
 }
+
 async function addComment(storyId) {
 
   if (!currentUser) {
@@ -219,44 +227,35 @@ async function addComment(storyId) {
     return;
   }
 
-  const box =
-    document.getElementById(
-      "comment-" + storyId
-    );
+  const textarea =
+    document.getElementById(`comment-${storyId}`);
 
-  const comment = box.value.trim();
+  const comment = textarea.value.trim();
 
-  if (comment === "") {
+  if (!comment) {
     alert("Please write a comment.");
     return;
   }
 
   await window.supabaseClient
     .from("comments")
-    .insert({
-      story_id: storyId,
-      user_id: currentUser.id,
-      author: currentUser.email,
-      comment: comment
-    });
+    .insert([
+      {
+        story_id: storyId,
+        user_id: currentUser.id,
+        comment: comment,
+        author: currentUser.email
+      }
+    ]);
 
   loadStories();
 
 }
-getCurrentUser().then(() => {
 
-  loadStories();
+getCurrentUser().then(loadStories);
 
-  const search =
-    document.getElementById("search");
+const searchBox = document.getElementById("search");
 
-  if (search) {
-
-    search.addEventListener(
-      "input",
-      loadStories
-    );
-
-  }
-
-});
+if (searchBox) {
+  searchBox.addEventListener("input", loadStories);
+}
