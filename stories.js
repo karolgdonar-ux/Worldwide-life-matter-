@@ -115,13 +115,22 @@ async function loadStories() {
     }
     container.innerHTML += `
 
-      <div class="story">
+      <div class="story"
+${
+  story.image_url
+    ? `
+      <img
+        src="${story.image_url}"
+        alt="Story Image"
+        class="story-image"
+      >
+    `
+    : ""
+}
 
-        <p><strong>Category:</strong> ${story.category || "Other"}</p>
+<p><strong>Category:</strong> ${story.category || "Other"}</p>
 
 <h2>${story.title}</h2>
-
-        <p>${story.content}</p>
 
         <small>
           By: ${story.author || "Anonymous"}
