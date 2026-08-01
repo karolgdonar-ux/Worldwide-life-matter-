@@ -204,3 +204,10 @@ footer a:hover{
   margin: 15px auto;
   object-fit: cover;
 }
+.story-video {
+  width: 100%;
+  max-width: 600px;
+  display: block;
+  margin: 15px auto;
+  border-radius: 10px;
+}

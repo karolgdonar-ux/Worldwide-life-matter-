@@ -9,6 +9,7 @@ if (form) {
     const category = document.getElementById("category").value;
     const author = document.getElementById("author").value;
     const imageFile = document.getElementById("image").files[0];
+const videoFile = document.getElementById("video").files[0];
     const message = document.getElementById("message");
 
     const {
@@ -23,6 +24,7 @@ if (form) {
     }
 
     let imageUrl = "";
+let videoUrl = "";
 
     if (imageFile) {
       const fileName =
@@ -45,6 +47,28 @@ if (form) {
 
       imageUrl = publicUrl;
     }
+if (videoFile) {
+  const videoFileName =
+    Date.now() + "-" + videoFile.name;
+
+  const { error: videoUploadError } =
+    await window.supabaseClient.storage
+      .from("story-videos")
+      .upload(videoFileName, videoFile);
+
+  if (videoUploadError) {
+    alert("Video upload failed: " + videoUploadError.message);
+    return;
+  }
+
+  const {
+    data: { publicUrl },
+  } = window.supabaseClient.storage
+    .from("story-videos")
+    .getPublicUrl(videoFileName);
+
+  videoUrl = publicUrl;
+}
 
     const { error } = await window.supabaseClient
       .from("stories")
@@ -55,8 +79,9 @@ if (form) {
           category,
           author,
           image_url: imageUrl,
-          user_id: user.id
-        }
+video_url: videoUrl,
+user_id: user.id
+ }
       ]);
     if (error) {
       message.textContent = "Error: " + error.message;

@@ -129,6 +129,22 @@ async function loadStories() {
             `
             : ""
         }
+${
+  story.video_url
+    ? `
+      <video
+        controls
+        class="story-video"
+      >
+        <source
+          src="${story.video_url}"
+          type="video/mp4"
+        >
+        Your browser does not support the video tag.
+      </video>
+    `
+    : ""
+}
 
         <p><strong>Category:</strong> ${story.category || "Other"}</p>
 
