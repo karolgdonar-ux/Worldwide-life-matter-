@@ -1,3 +1,5 @@
+alert("submit.js is loaded");
+
 const form = document.getElementById("story-form");
 
 if (form) {
