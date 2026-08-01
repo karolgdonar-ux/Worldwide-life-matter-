@@ -16,10 +16,14 @@ alert("Submit button clicked");
 const videoFile = document.getElementById("video").files[0];
     const message = document.getElementById("message");
 
-    const {
-      data: { user },
-      error: userError,
-    } = await window.supabaseClient.auth.getUser();
+    alert("Checking login...");
+
+const {
+  data: { user },
+  error: userError,
+} = await window.supabaseClient.auth.getUser();
+
+alert("Finished checking login");	
 
     if (userError || !user) {
       alert("Please log in before submitting a story.");
@@ -73,6 +77,8 @@ if (videoFile) {
 
   videoUrl = publicUrl;
 }
+alert("About to save story");
+alert("Story save request finished");
 
     const { error } = await window.supabaseClient
       .from("stories")
