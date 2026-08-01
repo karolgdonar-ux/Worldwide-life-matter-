@@ -1,4 +1,4 @@
-alert("submit.js is loaded");
+Aalert("submit.js is loaded");
 
 const form = document.getElementById("story-form");
 
@@ -12,8 +12,10 @@ alert("Submit button clicked");
     const content = document.getElementById("content").value;
     const category = document.getElementById("category").value;
     const author = document.getElementById("author").value;
-    const imageFile = document.getElementById("image").files[0];
+const imageFile = document.getElementById("image").files[0];
+alert(imageFile ? "Image selected" : "No image selected");
 const videoFile = document.getElementById("video").files[0];
+alert(videoFile ? "Video selected" : "No video selected");
     const message = document.getElementById("message");
 
     alert("Checking login...");
