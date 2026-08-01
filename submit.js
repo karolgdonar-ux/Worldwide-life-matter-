@@ -6,6 +6,8 @@ if (form) {
   form.addEventListener("submit", async (event) => {
     event.preventDefault();
 
+alert("Submit button clicked");
+
     const title = document.getElementById("title").value;
     const content = document.getElementById("content").value;
     const category = document.getElementById("category").value;
