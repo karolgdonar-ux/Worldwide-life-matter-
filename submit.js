@@ -35,6 +35,7 @@ alert("Finished checking login");
 let videoUrl = "";
 
     if (imageFile) {
+alert("Starting image upload");
       const fileName =
         Date.now() + "-" + imageFile.name;
       const { error: uploadError } =
@@ -56,6 +57,7 @@ let videoUrl = "";
       imageUrl = publicUrl;
     }
 if (videoFile) {
+alert("Starting video upload");
   const videoFileName =
     Date.now() + "-" + videoFile.name;
 
