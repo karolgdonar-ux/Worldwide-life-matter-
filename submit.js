@@ -1,114 +1,122 @@
-alert("submit.js is loaded");
-
 const form = document.getElementById("story-form");
 
 if (form) {
   form.addEventListener("submit", async (event) => {
     event.preventDefault();
 
-alert("Submit button clicked");
+    try {
+      const title = document.getElementById("title").value.trim();
+      const content = document.getElementById("content").value.trim();
+      const category = document.getElementById("category").value;
+      const author =
+        document.getElementById("author").value.trim();
 
-    const title = document.getElementById("title").value;
-    const content = document.getElementById("content").value;
-    const category = document.getElementById("category").value;
-    const author = document.getElementById("author").value;
-const imageFile = document.getElementById("image").files[0];
-alert(imageFile ? "Image selected" : "No image selected");
-const videoFile = document.getElementById("video").files[0];
-alert(videoFile ? "Video selected" : "No video selected");
-    const message = document.getElementById("message");
+      const imageFile =
+        document.getElementById("image").files[0];
 
-    alert("Checking login...");
+      const videoFile =
+        document.getElementById("video").files[0];
 
-const {
-  data: { user },
-  error: userError,
-} = await window.supabaseClient.auth.getUser();
+      const message =
+        document.getElementById("message");
 
-alert("Finished checking login");	
+      const {
+        data: { user },
+        error: userError,
+      } =
+        await window.supabaseClient.auth.getUser();
 
-    if (userError || !user) {
-      alert("Please log in before submitting a story.");
-      window.location.href = "login.html";
-      return;
-    }
-
-    let imageUrl = "";
-let videoUrl = "";
-
-    if (imageFile) {
-alert("Starting image upload");
-      const fileName =
-        Date.now() + "-" + imageFile.name;
-      const { error: uploadError } =
-        await window.supabaseClient.storage
-          .from("story-images")
-          .upload(fileName, imageFile);
-
-      if (uploadError) {
-        alert("Image upload failed: " + uploadError.message);
+      if (userError || !user) {
+        alert("Please log in before submitting a story.");
+        window.location.href = "login.html";
         return;
       }
 
-      const {
-        data: { publicUrl },
-      } = window.supabaseClient.storage
-        .from("story-images")
-        .getPublicUrl(fileName);
+      let imageUrl = "";
+      let videoUrl = "";
+      if (imageFile) {
+        const fileName =
+          Date.now() + "-" + imageFile.name;
 
-      imageUrl = publicUrl;
-    }
-if (videoFile) {
-console.log("Starting video upload");
-alert("Starting video upload");
-  const videoFileName =
-    Date.now() + "-" + videoFile.name;
+        const { error: uploadError } =
+          await window.supabaseClient.storage
+            .from("story-images")
+            .upload(fileName, imageFile);
 
-  const { data, error: videoUploadError } =
-    await window.supabaseClient.storage
-      .from("story-videos")
-      .upload(videoFileName, videoFile);
+        if (uploadError) {
+          throw uploadError;
+        }
 
-console.log(data);
-console.log(videoUploadError);
-alert(JSON.stringify(videoUploadError));
+        const {
+          data: { publicUrl },
+        } = window.supabaseClient.storage
+          .from("story-images")
+          .getPublicUrl(fileName);
 
-  if (videoUploadError) {
-    alert("Video upload failed: " + videoUploadError.message);
-    return;
-  }
+        imageUrl = publicUrl;
+      }
 
-  const {
-    data: { publicUrl },
-  } = window.supabaseClient.storage
-    .from("story-videos")
-    .getPublicUrl(videoFileName);
+      if (videoFile) {
+        const videoFileName =
+          Date.now() + "-" + videoFile.name;
 
-  videoUrl = publicUrl;
-}
-alert("About to save story");
-alert("Story save request finished");
+        const { error: videoUploadError } =
+          await window.supabaseClient.storage
+            .from("story-videos")
+            .upload(videoFileName, videoFile);
 
-    const { error } = await window.supabaseClient
-      .from("stories")
-      .insert([
-        {
-          title,
-          content,
-          category,
-          author,
-          image_url: imageUrl,
-video_url: videoUrl,
-user_id: user.id
- }
-      ]);
-    if (error) {
-      message.textContent = "Error: " + error.message;
-      alert("Error: " + error.message);
-    } else {
-      message.textContent = "Story submitted successfully!";
+        if (videoUploadError) {
+          throw videoUploadError;
+        }
+
+        const {
+          data: { publicUrl },
+        } = window.supabaseClient.storage
+          .from("story-videos")
+          .getPublicUrl(videoFileName);
+
+        videoUrl = publicUrl;
+      }
+      const { error } =
+        await window.supabaseClient
+          .from("stories")
+          .insert([
+            {
+              title,
+              content,
+              category,
+              author,
+              image_url: imageUrl,
+              video_url: videoUrl,
+              user_id: user.id
+            }
+          ]);
+
+      if (error) {
+        throw error;
+      }
+
+      message.textContent =
+        "Story submitted successfully!";
+
       alert("Thank you for sharing your story!");
+
       form.reset();
+
+    } catch (error) {
+
+      console.error(error);
+
+      alert("Error: " + error.message);
+
+      const message =
+        document.getElementById("message");
+
+      if (message) {
+        message.textContent =
+          "Error: " + error.message;
+      }
+
     }
   });
 }
