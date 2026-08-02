@@ -1,4 +1,4 @@
-Aalert("submit.js is loaded");
+alert("submit.js is loaded");
 
 const form = document.getElementById("story-form");
 
@@ -103,7 +103,7 @@ user_id: user.id
  }
       ]);
     if (error) {
-p      message.textContent = "Error: " + error.message;
+      message.textContent = "Error: " + error.message;
       alert("Error: " + error.message);
     } else {
       message.textContent = "Story submitted successfully!";
