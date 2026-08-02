@@ -59,14 +59,19 @@ alert("Starting image upload");
       imageUrl = publicUrl;
     }
 if (videoFile) {
+console.log("Starting video upload");
 alert("Starting video upload");
   const videoFileName =
     Date.now() + "-" + videoFile.name;
 
-  const { error: videoUploadError } =
+  const { data, error: videoUploadError } =
     await window.supabaseClient.storage
       .from("story-videos")
       .upload(videoFileName, videoFile);
+
+console.log(data);
+console.log(videoUploadError);
+alert(JSON.stringify(videoUploadError));
 
   if (videoUploadError) {
     alert("Video upload failed: " + videoUploadError.message);
@@ -98,7 +103,7 @@ user_id: user.id
  }
       ]);
     if (error) {
-      message.textContent = "Error: " + error.message;
+p      message.textContent = "Error: " + error.message;
       alert("Error: " + error.message);
     } else {
       message.textContent = "Story submitted successfully!";
