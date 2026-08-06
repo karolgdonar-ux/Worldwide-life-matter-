@@ -196,14 +196,12 @@ async function loadStories() {
 
       </div>
 
-    `;
+        `;
   }
-async function toggleLike(storyId) {
 
-  if (!currentUser) {
-    alert("Please log in first.");
-    return;
-  }
+}   // <-- This closes loadStories()
+
+async function toggleLike(storyId) {
 
   const { data } =
     await window.supabaseClient
