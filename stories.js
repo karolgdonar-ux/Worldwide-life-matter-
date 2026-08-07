@@ -1,4 +1,3 @@
-alert("stories.js loaded");
 
 let currentUser = null;
 
