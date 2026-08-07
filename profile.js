@@ -1,4 +1,15 @@
+const avatarInput = document.getElementById("avatar");
+const avatarPreview = document.getElementById("avatarPreview");
+const bioInput = document.getElementById("bio");
+const countryInput = document.getElementById("country");
+const websiteInput = document.getElementById("website");
+const saveButton = document.getElementById("saveProfile");
+const message = document.getElementById("message");
+
+let currentUser = null;
+
 async function loadProfile() {
+
   const {
     data: { user },
     error
@@ -10,75 +21,106 @@ async function loadProfile() {
     return;
   }
 
-  document.getElementById("user-email").textContent =
-    "📧 " + user.email;
+  currentUser = user;
 
-  const { data: stories, error: storyError } =
+  const { data: profile } =
     await window.supabaseClient
-      .from("stories")
+      .from("profiles")
       .select("*")
-      .eq("user_id", user.id)
-      .order("created_at", { ascending: false });
+      .eq("id", user.id)
+      .single();
 
-  const container = document.getElementById("my-stories");
+  if (profile) {
 
-  if (storyError) {
-    container.innerHTML =
-      "<p>Error loading your stories.</p>";
-    return;
+    bioInput.value = profile.bio || "";
+    countryInput.value = profile.country || "";
+    websiteInput.value = profile.website || "";
+
+    if (profile.avatar_url) {
+      avatarPreview.src = profile.avatar_url;
+    }
+
   }
-
-  if (!stories || stories.length === 0) {
-    container.innerHTML =
-      "<p>You haven't shared any stories yet.</p>";
-    return;
-  }
-
-  container.innerHTML = "";
-
-   stories.forEach((story) => {
-  container.innerHTML += `
-    <div class="story">
-      <h2>${story.title}</h2>
-      <p>${story.content}</p>
-      <small>By: ${story.author}</small>
-      <br><br>
-
-      <button onclick="editStory('${story.id}')">✏️ Edit</button>
-
-      <button onclick="deleteStory('${story.id}')">🗑️ Delete</button>
-
-      <hr>
-    </div>
-  `;
-});
 
 }
+avatarInput.addEventListener("change", () => {
+
+  const file = avatarInput.files[0];
+
+  if (file) {
+    avatarPreview.src =
+      URL.createObjectURL(file);
+  }
+
+});
+
+saveButton.addEventListener("click", async () => {
+
+  try {
+
+    let avatarUrl = "";
+
+    const file = avatarInput.files[0];
+
+    if (file) {
+
+      const fileName =
+        currentUser.id + "-" + Date.now();
+
+      const { error: uploadError } =
+        await window.supabaseClient.storage
+          .from("profile-images")
+          .upload(fileName, file);
+
+      if (uploadError) {
+        throw uploadError;
+      }
+
+      const {
+        data: { publicUrl },
+      } = window.supabaseClient.storage
+        .from("profile-images")
+        .getPublicUrl(fileName);
+
+      avatarUrl = publicUrl;
+
+    }
+
+    const profileData = {
+      id: currentUser.id,
+      bio: bioInput.value.trim(),
+      country: countryInput.value.trim(),
+      website: websiteInput.value.trim()
+    };
+
+    if (avatarUrl) {
+      profileData.avatar_url = avatarUrl;
+    }
+    const { error } =
+      await window.supabaseClient
+        .from("profiles")
+        .upsert(profileData);
+
+    if (error) {
+      throw error;
+    }
+
+    message.textContent =
+      "Profile saved successfully!";
+
+    alert("Your profile has been updated!");
+
+  } catch (error) {
+
+    console.error(error);
+
+    message.textContent =
+      "Error: " + error.message;
+
+    alert("Error: " + error.message);
+
+  }
+
+});
 
 loadProfile();
-
-document.getElementById("logout-btn").addEventListener("click", async () => {
-  await window.supabaseClient.auth.signOut();
-  window.location.href = "login.html";
-});
-async function deleteStory(id) {
-  const confirmed = confirm("Are you sure you want to delete this story?");
-
-  if (!confirmed) return;
-
-  const { error } = await window.supabaseClient
-    .from("stories")
-    .delete()
-    .eq("id", id);
-
-  if (error) {
-    alert("Error deleting story: " + error.message);
-  } else {
-    alert("Story deleted successfully!");
-    location.reload();
-  }
-}
-
-function editStory(id) {
-  window.location.href = "edit-story.html?id=" + id;
-}
