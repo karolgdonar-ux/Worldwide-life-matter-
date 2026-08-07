@@ -1,8 +1,10 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
   <title>My Profile - Worldwide Life Matter</title>
 
   <link rel="stylesheet" href="style.css">
@@ -19,7 +21,7 @@
   <nav>
     <a href="index.html">Home</a>
     <a href="stories.html">Stories</a>
-    <a href="submit.html">Submit</a>
+    <a href="submit.html">Submit Story</a>
     <a href="profile.html">My Profile</a>
   </nav>
 
@@ -31,150 +33,66 @@
 
 <div class="profile-container">
 
-<div class="profile-picture">
+  <div class="profile-picture">
 
-<img
-id="avatarPreview"
-src="https://placehold.co/180x180?text=Profile"
-alt="Profile Picture"
-class="avatar">
+    <img
+      id="avatarPreview"
+      src="https://placehold.co/180x180?text=Profile"
+      alt="Profile Picture"
+      class="avatar">
 
-<br><br>
+    <br><br>
 
-<input
-type="file"
-id="avatar"
-accept="image/*">
+    <input
+      type="file"
+      id="avatar"
+      accept="image/*">
 
-</div>
-
-<div class="profile-form">
-
-<label>Bio</label>
-
-<textarea
-id="bio"
-rows="5"
-placeholder="Tell people about yourself..."></textarea>
-
-<br><br>
-
-<label>Country</label>
-
-<input
-type="text"
-id="country"
-placeholder="Country">
-
-<br><br>
-
-<label>Website</label>
-
-<input
-type="url"
-id="website"
-placeholder="https://example.com">
-
-<br><br>
-
-<button id="saveProfile">
-Save Profile
-</button>
-
-<p id="message"></p>
-
-</div>
-
-</div>
-
-</main>
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>My Profile - Worldwide Life Matter</title>
-
-  <link rel="stylesheet" href="style.css">
-</head>
-
-<body>
-
-<header class="top-header">
-
-  <div class="logo">
-    🌍 Worldwide Life Matter
   </div>
 
-  <nav>
-    <a href="index.html">Home</a>
-    <a href="stories.html">Stories</a>
-    <a href="submit.html">Submit</a>
-    <a href="profile.html">My Profile</a>
-  </nav>
+  <div class="profile-form">
 
-</header>
+    <label>Bio</label>
 
-<main>
+    <textarea
+      id="bio"
+      rows="5"
+      placeholder="Tell people about yourself..."></textarea>
 
-<h1>My Profile</h1>
+    <br><br>
 
-<div class="profile-container">
+    <label>Country</label>
 
-<div class="profile-picture">
+    <input
+      type="text"
+      id="country"
+      placeholder="Country">
 
-<img
-id="avatarPreview"
-src="https://placehold.co/180x180?text=Profile"
-alt="Profile Picture"
-class="avatar">
+    <br><br>
 
-<br><br>
+    <label>Website</label>
 
-<input
-type="file"
-id="avatar"
-accept="image/*">
+    <input
+      type="url"
+      id="website"
+      placeholder="https://example.com">
 
-</div>
+    <br><br>
 
-<div class="profile-form">
+    <button id="saveProfile">
+      Save Profile
+    </button>
 
-<label>Bio</label>
+    <p id="message"></p>
 
-<textarea
-id="bio"
-rows="5"
-placeholder="Tell people about yourself..."></textarea>
-
-<br><br>
-
-<label>Country</label>
-
-<input
-type="text"
-id="country"
-placeholder="Country">
-
-<br><br>
-
-<label>Website</label>
-
-<input
-type="url"
-id="website"
-placeholder="https://example.com">
-
-<br><br>
-
-<button id="saveProfile">
-Save Profile
-</button>
-
-<p id="message"></p>
-
-</div>
+  </div>
 
 </div>
 
 </main>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="supabase.js"></script>
+<script src="profile.js"></script>
+
+</body>
+</html>
