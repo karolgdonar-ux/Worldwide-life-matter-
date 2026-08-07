@@ -1,3 +1,5 @@
+alert("stories.js loaded");
+
 let currentUser = null;
 
 async function getCurrentUser() {
