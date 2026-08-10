@@ -1,25 +1,34 @@
-
 let currentUser = null;
 
 async function getCurrentUser() {
+
   const { data } =
     await window.supabaseClient.auth.getUser();
 
   currentUser = data.user;
 }
 
+
 async function loadStories() {
 
   const container =
     document.getElementById("stories-list");
 
-  const search =
-    document
-      .getElementById("search")
-      .value
-      .toLowerCase();
+  const searchInput =
+    document.getElementById("search");
 
-  const { data: stories, error } =
+  const search =
+    searchInput
+      ? searchInput.value.toLowerCase()
+      : "";
+
+  container.innerHTML =
+    "<p>Loading stories...</p>";
+
+  const {
+    data: stories,
+    error
+  } =
     await window.supabaseClient
       .from("stories")
       .select("*")
@@ -28,14 +37,22 @@ async function loadStories() {
       });
 
   if (error) {
+
+    console.error(error);
+
     container.innerHTML =
-      "<p>Error loading stories.</p>";
+      "<p>Error loading stories: " +
+      error.message +
+      "</p>";
+
     return;
   }
 
   if (!stories || stories.length === 0) {
+
     container.innerHTML =
       "<p>No stories have been shared yet.</p>";
+
     return;
   }
 
@@ -44,13 +61,21 @@ async function loadStories() {
   for (const story of stories) {
 
     if (
-      !story.title.toLowerCase().includes(search) &&
-      !story.content.toLowerCase().includes(search) &&
+      !(story.title || "")
+        .toLowerCase()
+        .includes(search) &&
+
+      !(story.content || "")
+        .toLowerCase()
+        .includes(search) &&
+
       !(story.author || "")
         .toLowerCase()
         .includes(search)
     ) {
+
       continue;
+
     }
 
     const { count } =
@@ -73,7 +98,8 @@ async function loadStories() {
           .eq("story_id", story.id)
           .eq("user_id", currentUser.id);
 
-      liked = data.length > 0;
+      liked =
+        data && data.length > 0;
     }
 
     const { data: comments } =
@@ -87,17 +113,29 @@ async function loadStories() {
 
     let commentsHtml = "";
 
-    if (comments && comments.length > 0) {
+    if (
+      comments &&
+      comments.length > 0
+    ) {
 
       comments.forEach(comment => {
 
         commentsHtml += `
+
           <div class="comment">
-            <strong>${comment.author || "Anonymous"}</strong>
+
+            <strong>
+              ${comment.author || "Anonymous"}
+            </strong>
+
             <br>
+
             ${comment.comment}
+
             <hr>
+
           </div>
+
         `;
 
       });
@@ -137,7 +175,10 @@ async function loadStories() {
                   src="${story.video_url}"
                   type="video/mp4"
                 >
-                Your browser does not support video playback.
+
+                Your browser does not support
+                video playback.
+
               </video>
 
               <br><br>
@@ -150,12 +191,32 @@ async function loadStories() {
           ${story.category || "Other"}
         </p>
 
-        <h2>${story.title}</h2>
+        <h2>
+          ${story.title || "Untitled Story"}
+        </h2>
 
-        <p>${story.content}</p>
+        <p>
+          ${story.content || ""}
+        </p>
 
         <small>
-          By: ${story.author || "Anonymous"}
+          By:
+
+          ${
+            story.user_id
+              ? `
+                <a
+                  href="public-profile.html?id=${story.user_id}"
+                  class="author-link"
+                >
+                  ${story.author || "Anonymous"}
+                </a>
+              `
+              : `
+                ${story.author || "Anonymous"}
+              `
+          }
+
         </small>
 
         <br><br>
@@ -164,9 +225,13 @@ async function loadStories() {
           ${liked ? "💔 Unlike" : "❤️ Like"}
         </button>
 
-        <span>${count || 0} Likes</span>
+        <span>
+          ${count || 0} Likes
+        </span>
 
-        <h3>Comments</h3>
+        <h3>
+          Comments
+        </h3>
 
         ${commentsHtml}
 
@@ -188,7 +253,9 @@ async function loadStories() {
             `
             : `
               <p>
-                <em>Log in to comment.</em>
+                <em>
+                  Log in to comment.
+                </em>
               </p>
             `
         }
@@ -197,21 +264,32 @@ async function loadStories() {
 
       </div>
 
-        `;
+    `;
   }
-
-}   // <-- This closes loadStories()
-
 async function toggleLike(storyId) {
 
-  const { data } =
+  if (!currentUser) {
+
+    alert("Please log in first.");
+
+    return;
+  }
+
+  const { data, error } =
     await window.supabaseClient
       .from("likes")
       .select("*")
       .eq("story_id", storyId)
       .eq("user_id", currentUser.id);
 
-  if (data.length > 0) {
+  if (error) {
+
+    alert(error.message);
+
+    return;
+  }
+
+  if (data && data.length > 0) {
 
     await window.supabaseClient
       .from("likes")
@@ -235,21 +313,33 @@ async function toggleLike(storyId) {
   loadStories();
 }
 
+
 async function addComment(storyId) {
 
   if (!currentUser) {
+
     alert("Please log in first.");
+
     return;
   }
 
   const textarea =
-    document.getElementById(`comment-${storyId}`);
+    document.getElementById(
+      `comment-${storyId}`
+    );
+
+  if (!textarea) {
+
+    return;
+  }
 
   const comment =
     textarea.value.trim();
 
   if (!comment) {
+
     alert("Please write a comment.");
+
     return;
   }
 
@@ -260,29 +350,42 @@ async function addComment(storyId) {
         {
           story_id: storyId,
           user_id: currentUser.id,
-          author:
-            currentUser.email,
+          author: currentUser.email,
           comment: comment
         }
       ]);
 
   if (error) {
+
     alert(error.message);
+
     return;
   }
 
   loadStories();
 }
 
-getCurrentUser().then(loadStories);
+
+async function startStoriesPage() {
+
+  await getCurrentUser();
+
+  await loadStories();
+
+}
+
 
 const search =
   document.getElementById("search");
 
 if (search) {
+
   search.addEventListener(
     "input",
     loadStories
   );
+
 }
 
+
+startStoriesPage();
