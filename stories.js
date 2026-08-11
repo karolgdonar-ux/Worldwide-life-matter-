@@ -1,3 +1,5 @@
+alert("NEW stories.js is running");
+
 let currentUser = null;
 
 async function getCurrentUser() {
