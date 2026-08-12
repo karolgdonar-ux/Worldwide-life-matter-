@@ -226,3 +226,197 @@ footer a:hover{
   margin-bottom: 10px;
   object-fit: cover;
 }
+/* =================================
+   PUBLIC PROFILE
+================================= */
+
+.public-profile {
+
+  display: flex;
+
+  align-items: center;
+
+  gap: 30px;
+
+  margin: 30px 0;
+
+  padding: 25px;
+
+  background: #f5f5f5;
+
+  border-radius: 15px;
+
+}
+
+
+.public-profile-picture {
+
+  flex-shrink: 0;
+
+}
+
+
+.public-profile-picture .avatar {
+
+  width: 180px;
+
+  height: 180px;
+
+  border-radius: 50%;
+
+  object-fit: cover;
+
+  border: 4px solid #ddd;
+
+}
+
+
+.public-profile-info {
+
+  flex: 1;
+
+}
+
+
+.public-profile-info h2 {
+
+  margin-top: 0;
+
+  font-size: 28px;
+
+}
+
+
+.public-profile-info p {
+
+  line-height: 1.6;
+
+}
+
+
+.public-profile-info a {
+
+  text-decoration: none;
+
+  font-weight: bold;
+
+}
+
+
+.profile-stats {
+
+  display: flex;
+
+  gap: 40px;
+
+  margin: 20px 0 35px;
+
+  padding: 20px;
+
+  background: #f5f5f5;
+
+  border-radius: 15px;
+
+}
+
+
+.profile-stats div {
+
+  display: flex;
+
+  flex-direction: column;
+
+  align-items: center;
+
+}
+
+
+.profile-stats strong {
+
+  font-size: 25px;
+
+}
+
+
+.profile-stats span {
+
+  margin-top: 5px;
+
+  color: #666;
+
+}
+
+
+.author-link {
+
+  font-weight: bold;
+
+  text-decoration: none;
+
+}
+
+
+.story-image {
+
+  max-width: 100%;
+
+  border-radius: 10px;
+
+  margin-bottom: 15px;
+
+}
+
+
+.story-video {
+
+  max-width: 100%;
+
+  border-radius: 10px;
+
+  margin-bottom: 15px;
+
+}
+
+
+/* =================================
+   MOBILE PUBLIC PROFILE
+================================= */
+
+@media (max-width: 600px) {
+
+  .public-profile {
+
+    flex-direction: column;
+
+    text-align: center;
+
+    gap: 15px;
+
+  }
+
+
+  .public-profile-picture .avatar {
+
+    width: 140px;
+
+    height: 140px;
+
+  }
+
+
+  .public-profile-info h2 {
+
+    font-size: 24px;
+
+  }
+
+
+  .profile-stats {
+
+    justify-content: center;
+
+    gap: 30px;
+
+  }
+
+}

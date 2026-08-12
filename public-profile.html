@@ -2,15 +2,26 @@
 <html lang="en">
 
 <head>
+
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+  >
 
   <title>Public Profile - Worldwide Life Matter</title>
 
-  <link rel="stylesheet" href="style.css">
+  <link
+    rel="stylesheet"
+    href="style.css"
+  >
+
 </head>
 
+
 <body>
+
 
 <header class="top-header">
 
@@ -18,95 +29,245 @@
     🌍 Worldwide Life Matter
   </div>
 
+
   <nav>
-    <a href="index.html">Home</a>
-    <a href="stories.html">Stories</a>
-    <a href="submit.html">Submit Story</a>
-    <a href="profile.html">My Profile</a>
+
+    <a href="index.html">
+      Home
+    </a>
+
+    <a href="stories.html">
+      Stories
+    </a>
+
+    <a href="submit.html">
+      Submit Story
+    </a>
+
+    <a href="profile.html">
+      My Profile
+    </a>
+
   </nav>
 
 </header>
 
+
+
 <main>
 
-<h1>Public Profile</h1>
 
-<div id="profile-message">
-  Loading profile...
-</div>
+  <h1>Public Profile</h1>
 
-<div id="public-profile" style="display: none;">
 
-  <div class="profile-container">
+  <div
+    id="profile-loading"
+  >
 
-    <div class="profile-picture">
+    <p>
+      Loading profile...
+    </p>
 
-      <img
-        id="avatar"
-        src="https://placehold.co/180x180?text=Profile"
-        alt="Profile Picture"
-        class="avatar">
+  </div>
 
-    </div>
 
-    <div class="profile-form">
 
-      <h2 id="profile-name">
-        User
+  <div
+    id="profile-content"
+    style="display:none;"
+  >
+
+
+    <!-- PROFILE INFORMATION -->
+
+    <section
+      class="public-profile"
+    >
+
+
+      <div
+        class="public-profile-picture"
+      >
+
+        <img
+          id="profile-avatar"
+          src="https://placehold.co/180x180?text=Profile"
+          alt="Profile Picture"
+          class="avatar"
+        >
+
+      </div>
+
+
+
+      <div
+        class="public-profile-info"
+      >
+
+        <h2
+          id="profile-name"
+        >
+          User
+        </h2>
+
+
+        <p>
+          <strong>
+            Country:
+          </strong>
+
+          <span
+            id="profile-country"
+          >
+            Not provided
+          </span>
+
+        </p>
+
+
+        <p
+          id="profile-bio"
+        >
+        </p>
+
+
+        <p>
+
+          <strong>
+            Website:
+          </strong>
+
+          <a
+            id="profile-website"
+            href="#"
+            target="_blank"
+            style="display:none;"
+          >
+            Visit Website
+          </a>
+
+          <span
+            id="no-website"
+          >
+            Not provided
+          </span>
+
+        </p>
+
+
+      </div>
+
+
+    </section>
+
+
+
+    <!-- PROFILE STATISTICS -->
+
+    <section
+      class="profile-stats"
+    >
+
+      <div>
+
+        <strong
+          id="story-count"
+        >
+          0
+        </strong>
+
+        <span>
+          Stories
+        </span>
+
+      </div>
+
+
+      <div>
+
+        <strong
+          id="like-count"
+        >
+          0
+        </strong>
+
+        <span>
+          Likes
+        </span>
+
+      </div>
+
+    </section>
+
+
+
+    <!-- USER STORIES -->
+
+    <section>
+
+      <h2>
+        Stories by this user
       </h2>
 
-      <p>
-        <strong>Bio:</strong>
-      </p>
 
-      <p id="bio">
-        No bio available.
-      </p>
+      <div
+        id="user-stories"
+      >
 
-      <p>
-        <strong>Country:</strong>
-        <span id="country">
-          Not provided
-        </span>
-      </p>
+        <p>
+          Loading stories...
+        </p>
 
-      <p>
-        <strong>Website:</strong>
-        <a
-          id="website"
-          href="#"
-          target="_blank"
-          rel="noopener noreferrer">
-        </a>
-      </p>
+      </div>
 
-    </div>
+    </section>
+
+
+    <br>
+
+
+    <p>
+
+      <a href="stories.html">
+        ← Back to Stories
+      </a>
+
+    </p>
+
 
   </div>
 
-  <hr>
 
-  <h2>Stories by this user</h2>
 
-  <div id="user-stories">
-    Loading stories...
+  <div
+    id="profile-error"
+    style="display:none;"
+  >
+
+    <p>
+      Unable to load this profile.
+    </p>
+
   </div>
 
-</div>
-
-<br>
-
-<p>
-  <a href="stories.html">
-    ← Back to Stories
-  </a>
-</p>
 
 </main>
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="supabase.js"></script>
-<script src="public-profile.js"></script>
+
+
+<script
+  src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"
+></script>
+
+<script
+  src="supabase.js"
+></script>
+
+<script
+  src="public-profile.js"
+></script>
+
 
 </body>
+
 </html>
