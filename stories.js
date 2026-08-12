@@ -1,15 +1,37 @@
-alert("NEW stories.js is running");
+alert("stories.js loaded");
 
 let currentUser = null;
 
+
+/* ================================
+   GET CURRENT USER
+================================ */
+
 async function getCurrentUser() {
 
-  const { data } =
-    await window.supabaseClient.auth.getUser();
+  const {
+    data,
+    error
+  } = await window.supabaseClient.auth.getUser();
 
-  currentUser = data.user;
+  if (error) {
+
+    console.error("User error:", error);
+
+    currentUser = null;
+
+    return;
+
+  }
+
+  currentUser = data.user || null;
+
 }
 
+
+/* ================================
+   LOAD STORIES
+================================ */
 
 async function loadStories() {
 
@@ -19,13 +41,27 @@ async function loadStories() {
   const searchInput =
     document.getElementById("search");
 
+  if (!container) {
+
+    console.error(
+      "stories-list element not found."
+    );
+
+    return;
+
+  }
+
   const search =
     searchInput
-      ? searchInput.value.toLowerCase()
+      ? searchInput.value
+          .trim()
+          .toLowerCase()
       : "";
+
 
   container.innerHTML =
     "<p>Loading stories...</p>";
+
 
   const {
     data: stories,
@@ -38,9 +74,13 @@ async function loadStories() {
         ascending: false
       });
 
+
   if (error) {
 
-    console.error(error);
+    console.error(
+      "Stories error:",
+      error
+    );
 
     container.innerHTML =
       "<p>Error loading stories: " +
@@ -48,7 +88,9 @@ async function loadStories() {
       "</p>";
 
     return;
+
   }
+
 
   if (!stories || stories.length === 0) {
 
@@ -56,91 +98,173 @@ async function loadStories() {
       "<p>No stories have been shared yet.</p>";
 
     return;
+
   }
+
 
   container.innerHTML = "";
 
+
   for (const story of stories) {
 
+
+    /* ================================
+       SEARCH FILTER
+    ================================= */
+
+    const title =
+      (story.title || "")
+        .toLowerCase();
+
+    const content =
+      (story.content || "")
+        .toLowerCase();
+
+    const author =
+      (story.author || "")
+        .toLowerCase();
+
+
     if (
-      !(story.title || "")
-        .toLowerCase()
-        .includes(search) &&
-
-      !(story.content || "")
-        .toLowerCase()
-        .includes(search) &&
-
-      !(story.author || "")
-        .toLowerCase()
-        .includes(search)
+      search &&
+      !title.includes(search) &&
+      !content.includes(search) &&
+      !author.includes(search)
     ) {
 
       continue;
 
     }
 
-    const { count } =
+
+    /* ================================
+       GET LIKE COUNT
+    ================================= */
+
+    let likeCount = 0;
+
+    const {
+      count,
+      error: likeCountError
+    } =
       await window.supabaseClient
         .from("likes")
         .select("*", {
           count: "exact",
           head: true
         })
-        .eq("story_id", story.id);
+        .eq(
+          "story_id",
+          story.id
+        );
+
+
+    if (!likeCountError) {
+
+      likeCount =
+        count || 0;
+
+    }
+
+
+    /* ================================
+       CHECK IF CURRENT USER LIKED
+    ================================= */
 
     let liked = false;
 
+
     if (currentUser) {
 
-      const { data } =
+      const {
+        data: likeData
+      } =
         await window.supabaseClient
           .from("likes")
-          .select("*")
-          .eq("story_id", story.id)
-          .eq("user_id", currentUser.id);
+          .select("id")
+          .eq(
+            "story_id",
+            story.id
+          )
+          .eq(
+            "user_id",
+            currentUser.id
+          );
+
 
       liked =
-        data && data.length > 0;
+        !!(
+          likeData &&
+          likeData.length > 0
+        );
+
     }
 
-    const { data: comments } =
+
+    /* ================================
+       LOAD COMMENTS
+    ================================= */
+
+    const {
+      data: comments,
+      error: commentsError
+    } =
       await window.supabaseClient
         .from("comments")
         .select("*")
-        .eq("story_id", story.id)
-        .order("created_at", {
-          ascending: true
-        });
+        .eq(
+          "story_id",
+          story.id
+        )
+        .order(
+          "created_at",
+          {
+            ascending: true
+          }
+        );
 
-    let commentsHtml = "";
+
+    let commentsHtml =
+      "";
+
 
     if (
+      !commentsError &&
       comments &&
       comments.length > 0
     ) {
 
-      comments.forEach(comment => {
 
-        commentsHtml += `
+      comments.forEach(
+        (comment) => {
 
-          <div class="comment">
+          commentsHtml += `
 
-            <strong>
-              ${comment.author || "Anonymous"}
-            </strong>
+            <div class="comment">
 
-            <br>
+              <strong>
+                ${escapeHtml(
+                  comment.author ||
+                  "Anonymous"
+                )}
+              </strong>
 
-            ${comment.comment}
+              <br>
 
-            <hr>
+              ${escapeHtml(
+                comment.comment ||
+                ""
+              )}
 
-          </div>
+              <hr>
 
-        `;
+            </div>
 
-      });
+          `;
+
+        }
+      );
+
 
     } else {
 
@@ -148,156 +272,317 @@ async function loadStories() {
         "<p>No comments yet.</p>";
 
     }
+
+
+    /* ================================
+       AUTHOR PROFILE LINK
+    ================================= */
+
+    let authorHtml =
+      escapeHtml(
+        story.author ||
+        "Anonymous"
+      );
+
+
+    if (story.user_id) {
+
+      authorHtml = `
+
+        <a
+          href="public-profile.html?id=${encodeURIComponent(
+            story.user_id
+          )}"
+          class="author-link"
+        >
+          ${escapeHtml(
+            story.author ||
+            "Anonymous"
+          )}
+        </a>
+
+      `;
+
+    }
+
+
+    /* ================================
+       IMAGE
+    ================================= */
+
+    let imageHtml =
+      "";
+
+
+    if (story.image_url) {
+
+      imageHtml = `
+
+        <img
+          src="${escapeHtml(
+            story.image_url
+          )}"
+          alt="Story Image"
+          class="story-image"
+        >
+
+      `;
+
+    }
+
+
+    /* ================================
+       VIDEO
+    ================================= */
+
+    let videoHtml =
+      "";
+
+
+    if (story.video_url) {
+
+      videoHtml = `
+
+        <video
+          class="story-video"
+          controls
+          preload="metadata"
+          width="100%"
+        >
+
+          <source
+            src="${escapeHtml(
+              story.video_url
+            )}"
+            type="video/mp4"
+          >
+
+          Your browser does not
+          support video playback.
+
+        </video>
+
+        <br><br>
+
+      `;
+
+    }
+
+
+    /* ================================
+       COMMENT BOX
+    ================================= */
+
+    let commentBoxHtml =
+      "";
+
+
+    if (currentUser) {
+
+      commentBoxHtml = `
+
+        <textarea
+          id="comment-${escapeHtml(
+            story.id
+          )}"
+          placeholder="Write a comment..."
+        ></textarea>
+
+        <br><br>
+
+        <button
+          onclick="addComment('${escapeHtml(
+            story.id
+          )}')"
+        >
+          Post Comment
+        </button>
+
+      `;
+
+    } else {
+
+      commentBoxHtml = `
+
+        <p>
+
+          <em>
+            Log in to comment.
+          </em>
+
+        </p>
+
+      `;
+
+    }
+
+
+    /* ================================
+       STORY HTML
+    ================================= */
+
     container.innerHTML += `
 
       <div class="story">
 
-        ${
-          story.image_url
-            ? `
-              <img
-                src="${story.image_url}"
-                alt="Story Image"
-                class="story-image"
-              >
-            `
-            : ""
-        }
+        ${imageHtml}
 
-        ${
-          story.video_url
-            ? `
-              <video
-                class="story-video"
-                controls
-                preload="metadata"
-                width="100%"
-              >
-                <source
-                  src="${story.video_url}"
-                  type="video/mp4"
-                >
+        ${videoHtml}
 
-                Your browser does not support
-                video playback.
-
-              </video>
-
-              <br><br>
-            `
-            : ""
-        }
 
         <p>
-          <strong>Category:</strong>
-          ${story.category || "Other"}
+
+          <strong>
+            Category:
+          </strong>
+
+          ${escapeHtml(
+            story.category ||
+            "Other"
+          )}
+
         </p>
+
 
         <h2>
-          ${story.title || "Untitled Story"}
+
+          ${escapeHtml(
+            story.title ||
+            "Untitled Story"
+          )}
+
         </h2>
 
+
         <p>
-          ${story.content || ""}
+
+          ${escapeHtml(
+            story.content ||
+            ""
+          )}
+
         </p>
 
-        <small>
-          By:
 
-          ${
-            story.user_id
-              ? `
-                <a
-                  href="public-profile.html?id=${story.user_id}"
-                  class="author-link"
-                >
-                  ${story.author || "Anonymous"}
-                </a>
-              `
-              : `
-                ${story.author || "Anonymous"}
-              `
-          }
+        <small>
+
+          By:
+          ${authorHtml}
 
         </small>
 
+
         <br><br>
 
-        <button onclick="toggleLike('${story.id}')">
-          ${liked ? "💔 Unlike" : "❤️ Like"}
+
+        <button
+          onclick="toggleLike('${escapeHtml(
+            story.id
+          )}')"
+        >
+
+          ${
+            liked
+              ? "💔 Unlike"
+              : "❤️ Like"
+          }
+
         </button>
 
+
         <span>
-          ${count || 0} Likes
+
+          ${likeCount}
+          Likes
+
         </span>
+
 
         <h3>
           Comments
         </h3>
 
+
         ${commentsHtml}
 
-        ${
-          currentUser
-            ? `
-              <textarea
-                id="comment-${story.id}"
-                placeholder="Write a comment..."
-              ></textarea>
 
-              <br><br>
+        ${commentBoxHtml}
 
-              <button
-                onclick="addComment('${story.id}')"
-              >
-                Post Comment
-              </button>
-            `
-            : `
-              <p>
-                <em>
-                  Log in to comment.
-                </em>
-              </p>
-            `
-        }
 
         <hr>
 
       </div>
 
     `;
+
   }
-async function toggleLike(storyId) {
+
+}
+
+
+/* ================================
+   LIKE STORY
+================================ */
+
+async function toggleLike(
+  storyId
+) {
 
   if (!currentUser) {
 
-    alert("Please log in first.");
+    alert(
+      "Please log in first."
+    );
 
     return;
+
   }
 
-  const { data, error } =
+
+  const {
+    data,
+    error
+  } =
     await window.supabaseClient
       .from("likes")
-      .select("*")
-      .eq("story_id", storyId)
-      .eq("user_id", currentUser.id);
+      .select("id")
+      .eq(
+        "story_id",
+        storyId
+      )
+      .eq(
+        "user_id",
+        currentUser.id
+      );
+
 
   if (error) {
 
-    alert(error.message);
+    alert(
+      error.message
+    );
 
     return;
+
   }
 
-  if (data && data.length > 0) {
+
+  if (
+    data &&
+    data.length > 0
+  ) {
 
     await window.supabaseClient
       .from("likes")
       .delete()
-      .eq("story_id", storyId)
-      .eq("user_id", currentUser.id);
+      .eq(
+        "story_id",
+        storyId
+      )
+      .eq(
+        "user_id",
+        currentUser.id
+      );
 
   } else {
 
@@ -305,89 +590,171 @@ async function toggleLike(storyId) {
       .from("likes")
       .insert([
         {
-          story_id: storyId,
-          user_id: currentUser.id
+          story_id:
+            storyId,
+
+          user_id:
+            currentUser.id
         }
       ]);
 
   }
 
-  loadStories();
-}
-
-
-async function addComment(storyId) {
-
-  if (!currentUser) {
-
-    alert("Please log in first.");
-
-    return;
-  }
-
-  const textarea =
-    document.getElementById(
-      `comment-${storyId}`
-    );
-
-  if (!textarea) {
-
-    return;
-  }
-
-  const comment =
-    textarea.value.trim();
-
-  if (!comment) {
-
-    alert("Please write a comment.");
-
-    return;
-  }
-
-  const { error } =
-    await window.supabaseClient
-      .from("comments")
-      .insert([
-        {
-          story_id: storyId,
-          user_id: currentUser.id,
-          author: currentUser.email,
-          comment: comment
-        }
-      ]);
-
-  if (error) {
-
-    alert(error.message);
-
-    return;
-  }
-
-  loadStories();
-}
-
-
-async function startStoriesPage() {
-
-  await getCurrentUser();
 
   await loadStories();
 
 }
 
 
-const search =
-  document.getElementById("search");
+/* ================================
+   ADD COMMENT
+================================ */
 
-if (search) {
+async function addComment(
+  storyId
+) {
 
-  search.addEventListener(
+  if (!currentUser) {
+
+    alert(
+      "Please log in first."
+    );
+
+    return;
+
+  }
+
+
+  const textarea =
+    document.getElementById(
+      "comment-" + storyId
+    );
+
+
+  if (!textarea) {
+
+    return;
+
+  }
+
+
+  const comment =
+    textarea.value.trim();
+
+
+  if (!comment) {
+
+    alert(
+      "Please write a comment."
+    );
+
+    return;
+
+  }
+
+
+  const {
+    error
+  } =
+    await window.supabaseClient
+      .from("comments")
+      .insert([
+        {
+          story_id:
+            storyId,
+
+          user_id:
+            currentUser.id,
+
+          author:
+            currentUser.email,
+
+          comment:
+            comment
+        }
+      ]);
+
+
+  if (error) {
+
+    alert(
+      error.message
+    );
+
+    return;
+
+  }
+
+
+  await loadStories();
+
+}
+
+
+/* ================================
+   ESCAPE HTML
+================================ */
+
+function escapeHtml(
+  value
+) {
+
+  const div =
+    document.createElement(
+      "div"
+    );
+
+  div.textContent =
+    value == null
+      ? ""
+      : String(value);
+
+  return div.innerHTML;
+
+}
+
+
+/* ================================
+   START STORIES PAGE
+================================ */
+
+async function startStoriesPage() {
+
+  alert(
+    "Stories JavaScript is running"
+  );
+
+
+  await getCurrentUser();
+
+
+  await loadStories();
+
+}
+
+
+/* ================================
+   SEARCH
+================================ */
+
+const searchInput =
+  document.getElementById(
+    "search"
+  );
+
+
+if (searchInput) {
+
+  searchInput.addEventListener(
     "input",
     loadStories
   );
 
 }
 
+
+/* ================================
+   START
+================================ */
 
 startStoriesPage();
