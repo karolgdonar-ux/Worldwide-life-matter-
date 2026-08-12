@@ -1,10 +1,5 @@
 alert("Public profile JavaScript is running");
 
-
-/* =================================
-   ELEMENTS
-================================= */
-
 const loading =
   document.getElementById("profileLoading");
 
@@ -36,9 +31,7 @@ const profileWebsite =
   document.getElementById("profileWebsite");
 
 const profileWebsiteContainer =
-  document.getElementById(
-    "profileWebsiteContainer"
-  );
+  document.getElementById("profileWebsiteContainer");
 
 const storyCount =
   document.getElementById("storyCount");
@@ -49,10 +42,6 @@ const likeCount =
 const userStories =
   document.getElementById("userStories");
 
-
-/* =================================
-   GET PROFILE ID
-================================= */
 
 function getProfileId() {
 
@@ -65,52 +54,6 @@ function getProfileId() {
 
 }
 
-
-/* =================================
-   SHOW ERROR
-================================= */
-
-function showError(message) {
-
-  if (loading) {
-
-    loading.style.display = "none";
-
-  }
-
-  if (profileSection) {
-
-    profileSection.style.display = "none";
-
-  }
-
-  if (profileStats) {
-
-    profileStats.style.display = "none";
-
-  }
-
-  if (storiesSection) {
-
-    storiesSection.style.display = "none";
-
-  }
-
-  if (errorBox) {
-
-    errorBox.textContent =
-      "Error loading profile: " + message;
-
-    errorBox.style.display = "block";
-
-  }
-
-}
-
-
-/* =================================
-   ESCAPE HTML
-================================= */
 
 function escapeHtml(value) {
 
@@ -127,9 +70,26 @@ function escapeHtml(value) {
 }
 
 
-/* =================================
-   LOAD PROFILE
-================================= */
+function showError(message) {
+
+  if (loading) {
+
+    loading.style.display = "none";
+
+  }
+
+  if (errorBox) {
+
+    errorBox.textContent =
+      "Error loading profile: " + message;
+
+    errorBox.style.display =
+      "block";
+
+  }
+
+}
+
 
 async function loadPublicProfile() {
 
@@ -138,10 +98,6 @@ async function loadPublicProfile() {
     const profileId =
       getProfileId();
 
-
-    /* =============================
-       CHECK ID
-    ============================= */
 
     if (!profileId) {
 
@@ -154,10 +110,6 @@ async function loadPublicProfile() {
     }
 
 
-    /* =============================
-       CHECK SUPABASE
-    ============================= */
-
     if (!window.supabaseClient) {
 
       showError(
@@ -169,19 +121,13 @@ async function loadPublicProfile() {
     }
 
 
-    console.log(
-      "Loading public profile:",
-      profileId
-    );
-
-
-    /* =============================
-       LOAD PROFILE
-    ============================= */
+    /* ==========================
+       GET PROFILE
+    ========================== */
 
     const {
       data: profile,
-      error: profileError
+      error
     } =
       await window.supabaseClient
         .from("profiles")
@@ -190,25 +136,12 @@ async function loadPublicProfile() {
         .maybeSingle();
 
 
-    console.log(
-      "Profile:",
-      profile
-    );
+    if (error) {
 
-alert(
-  "Profile data: " +
-  JSON.stringify(profile)
-);
-
-    if (profileError) {
-
-      console.error(
-        "Profile error:",
-        profileError
-      );
+      console.error(error);
 
       showError(
-        profileError.message
+        error.message
       );
 
       return;
@@ -227,11 +160,11 @@ alert(
     }
 
 
-    /* =============================
-       PROFILE NAME
-    ============================= */
+    /* ==========================
+       DISPLAY PROFILE IMMEDIATELY
+    ========================== */
 
-    const name =
+    profileName.textContent =
       profile.name ||
       profile.username ||
       profile.full_name ||
@@ -239,35 +172,18 @@ alert(
       "Worldwide Life Matter User";
 
 
-    profileName.textContent =
-      name;
-
-
-    /* =============================
-       COUNTRY
-    ============================= */
-
-    const country =
-      profile.country ||
-      "Country not provided";
-
-
     profileCountry.textContent =
-      "🌍 " + country;
+      "🌍 " +
+      (
+        profile.country ||
+        "Country not provided"
+      );
 
-
-    /* =============================
-       BIO
-    ============================= */
 
     profileBio.textContent =
       profile.bio ||
       "No bio available.";
 
-
-    /* =============================
-       PROFILE PHOTO
-    ============================= */
 
     if (profile.avatar_url) {
 
@@ -276,10 +192,6 @@ alert(
 
     }
 
-
-    /* =============================
-       WEBSITE
-    ============================= */
 
     if (profile.website) {
 
@@ -315,136 +227,130 @@ alert(
     }
 
 
-    /* =============================
-       SHOW PROFILE
-    ============================= */
+    /* SHOW PROFILE NOW */
 
     profileSection.style.display =
       "flex";
 
 
-    /* =============================
-       LOAD USER STORIES
-    ============================= */
+    loading.style.display =
+      "none";
 
-    const {
-      data: stories,
-      error: storiesError
-    } =
-      await window.supabaseClient
-        .from("stories")
-        .select("*")
-        .eq("user_id", profileId)
-        .order(
-          "created_at",
-          {
-            ascending: false
-          }
+
+    /* ==========================
+       LOAD STORIES SEPARATELY
+    ========================== */
+
+    try {
+
+      const {
+        data: stories,
+        error: storiesError
+      } =
+        await window.supabaseClient
+          .from("stories")
+          .select("*")
+          .eq(
+            "user_id",
+            profileId
+          )
+          .order(
+            "created_at",
+            {
+              ascending: false
+            }
+          );
+
+
+      if (storiesError) {
+
+        console.error(
+          "Stories error:",
+          storiesError
+        );
+
+        storyCount.textContent =
+          "0";
+
+        userStories.innerHTML =
+          "<p>Stories could not be loaded.</p>";
+
+      } else {
+
+        storyCount.textContent =
+          stories.length;
+
+
+        displayStories(
+          stories
         );
 
 
-    console.log(
-      "User stories:",
-      stories
-    );
+        /* ========================
+           COUNT LIKES
+        ======================== */
+
+        let totalLikes = 0;
 
 
-    if (storiesError) {
+        for (
+          const story of stories
+        ) {
 
-      console.error(
-        "Stories error:",
-        storiesError
-      );
+          const {
+            count
+          } =
+            await window.supabaseClient
+              .from("likes")
+              .select("*", {
+                count: "exact",
+                head: true
+              })
+              .eq(
+                "story_id",
+                story.id
+              );
 
-      storyCount.textContent =
-        "0";
-
-      userStories.innerHTML =
-        "<p>Unable to load stories.</p>";
-
-    } else {
-
-      storyCount.textContent =
-        stories
-          ? stories.length
-          : 0;
-
-
-      displayStories(
-        stories || []
-      );
-
-    }
-
-
-    /* =============================
-       LOAD TOTAL LIKES
-    ============================= */
-
-    let totalLikes = 0;
-
-
-    if (stories && stories.length > 0) {
-
-      for (
-        const story of stories
-      ) {
-
-        const {
-          count,
-          error: likesError
-        } =
-          await window.supabaseClient
-            .from("likes")
-            .select("*", {
-              count: "exact",
-              head: true
-            })
-            .eq(
-              "story_id",
-              story.id
-            );
-
-
-        if (!likesError) {
 
           totalLikes +=
             count || 0;
 
         }
 
+
+        likeCount.textContent =
+          totalLikes;
+
       }
 
+
+      profileStats.style.display =
+        "flex";
+
+      storiesSection.style.display =
+        "block";
+
+
+    } catch (storyError) {
+
+      console.error(
+        "Story loading error:",
+        storyError
+      );
+
+      profileStats.style.display =
+        "flex";
+
+      storiesSection.style.display =
+        "block";
+
     }
-
-
-    likeCount.textContent =
-      totalLikes;
-
-
-    /* =============================
-       SHOW STATS AND STORIES
-    ============================= */
-
-    profileStats.style.display =
-      "flex";
-
-    storiesSection.style.display =
-      "block";
-
-
-    /* =============================
-       HIDE LOADING
-    ============================= */
-
-    loading.style.display =
-      "none";
 
 
   } catch (error) {
 
     console.error(
-      "Public profile error:",
+      "Profile error:",
       error
     );
 
@@ -457,23 +363,9 @@ alert(
 }
 
 
-/* =================================
-   DISPLAY STORIES
-================================= */
-
 function displayStories(stories) {
 
-  if (!userStories) {
-
-    return;
-
-  }
-
-
-  if (
-    !stories ||
-    stories.length === 0
-  ) {
+  if (!stories || stories.length === 0) {
 
     userStories.innerHTML = `
 
@@ -496,11 +388,9 @@ function displayStories(stories) {
 
 
   stories.forEach(
-    (story) => {
+    story => {
 
-
-      let imageHtml =
-        "";
+      let imageHtml = "";
 
 
       if (story.image_url) {
@@ -520,54 +410,6 @@ function displayStories(stories) {
       }
 
 
-      let dateHtml =
-        "";
-
-
-      if (story.created_at) {
-
-        const date =
-          new Date(
-            story.created_at
-          );
-
-
-        if (
-          !isNaN(
-            date.getTime()
-          )
-        ) {
-
-          dateHtml = `
-
-            <small>
-              ${escapeHtml(
-                date.toLocaleDateString()
-              )}
-            </small>
-
-          `;
-
-        }
-
-      }
-
-
-      const category =
-        story.category ||
-        "Other";
-
-
-      const title =
-        story.title ||
-        "Untitled Story";
-
-
-      const content =
-        story.content ||
-        "";
-
-
       userStories.innerHTML += `
 
         <article
@@ -575,7 +417,6 @@ function displayStories(stories) {
         >
 
           ${imageHtml}
-
 
           <div
             class="profile-story-content"
@@ -585,7 +426,8 @@ function displayStories(stories) {
               class="profile-story-category"
             >
               ${escapeHtml(
-                category
+                story.category ||
+                "Other"
               )}
             </p>
 
@@ -593,7 +435,8 @@ function displayStories(stories) {
             <h3>
 
               ${escapeHtml(
-                title
+                story.title ||
+                "Untitled Story"
               )}
 
             </h3>
@@ -602,24 +445,22 @@ function displayStories(stories) {
             <p>
 
               ${escapeHtml(
-                content
+                story.content ||
+                ""
               )}
 
             </p>
 
 
-            ${dateHtml}
+            <small>
 
+              ${story.created_at
+                ? new Date(
+                    story.created_at
+                  ).toLocaleDateString()
+                : ""}
 
-            <br><br>
-
-
-            <a
-              href="stories.html"
-              class="read-story-link"
-            >
-              View Stories
-            </a>
+            </small>
 
           </div>
 
@@ -632,9 +473,5 @@ function displayStories(stories) {
 
 }
 
-
-/* =================================
-   START
-================================= */
 
 loadPublicProfile();
