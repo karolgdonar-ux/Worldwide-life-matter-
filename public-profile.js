@@ -195,6 +195,10 @@ async function loadPublicProfile() {
       profile
     );
 
+alert(
+  "Profile data: " +
+  JSON.stringify(profile)
+);
 
     if (profileError) {
 
