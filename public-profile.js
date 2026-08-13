@@ -1,47 +1,9 @@
-alert("Public profile JavaScript is running");
+let currentUser = null;
 
-const loading =
-  document.getElementById("profileLoading");
 
-const errorBox =
-  document.getElementById("profileError");
-
-const profileSection =
-  document.getElementById("profileSection");
-
-const profileStats =
-  document.getElementById("profileStats");
-
-const storiesSection =
-  document.getElementById("userStoriesSection");
-
-const profileAvatar =
-  document.getElementById("profileAvatar");
-
-const profileName =
-  document.getElementById("profileName");
-
-const profileCountry =
-  document.getElementById("profileCountry");
-
-const profileBio =
-  document.getElementById("profileBio");
-
-const profileWebsite =
-  document.getElementById("profileWebsite");
-
-const profileWebsiteContainer =
-  document.getElementById("profileWebsiteContainer");
-
-const storyCount =
-  document.getElementById("storyCount");
-
-const likeCount =
-  document.getElementById("likeCount");
-
-const userStories =
-  document.getElementById("userStories");
-
+/* =================================
+   GET PROFILE ID
+================================= */
 
 function getProfileId() {
 
@@ -54,6 +16,10 @@ function getProfileId() {
 
 }
 
+
+/* =================================
+   ESCAPE HTML
+================================= */
 
 function escapeHtml(value) {
 
@@ -70,28 +36,79 @@ function escapeHtml(value) {
 }
 
 
+/* =================================
+   SHOW ERROR
+================================= */
+
 function showError(message) {
+
+  const loading =
+    document.getElementById(
+      "profile-loading"
+    );
+
+  const content =
+    document.getElementById(
+      "profile-content"
+    );
+
+  const errorBox =
+    document.getElementById(
+      "profile-error"
+    );
+
 
   if (loading) {
 
-    loading.style.display = "none";
+    loading.style.display =
+      "none";
 
   }
 
-  if (errorBox) {
 
-    errorBox.textContent =
-      "Error loading profile: " + message;
+  if (content) {
+
+    content.style.display =
+      "none";
+
+  }
+
+
+  if (errorBox) {
 
     errorBox.style.display =
       "block";
+
+    errorBox.innerHTML = `
+
+      <p>
+        Error loading profile:
+        ${escapeHtml(message)}
+      </p>
+
+    `;
 
   }
 
 }
 
 
+/* =================================
+   LOAD PUBLIC PROFILE
+================================= */
+
 async function loadPublicProfile() {
+
+  const loading =
+    document.getElementById(
+      "profile-loading"
+    );
+
+  const content =
+    document.getElementById(
+      "profile-content"
+    );
+
 
   try {
 
@@ -121,27 +138,24 @@ async function loadPublicProfile() {
     }
 
 
-    /* ==========================
-       GET PROFILE
-    ========================== */
-
     const {
       data: profile,
-      error
+      error: profileError
     } =
       await window.supabaseClient
         .from("profiles")
         .select("*")
-        .eq("id", profileId)
+        .eq(
+          "id",
+          profileId
+        )
         .maybeSingle();
 
 
-    if (error) {
-
-      console.error(error);
+    if (profileError) {
 
       showError(
-        error.message
+        profileError.message
       );
 
       return;
@@ -160,197 +174,164 @@ async function loadPublicProfile() {
     }
 
 
-    /* ==========================
-       DISPLAY PROFILE IMMEDIATELY
-    ========================== */
+    /* PROFILE NAME */
 
-    profileName.textContent =
-      profile.name ||
-      profile.username ||
-      profile.full_name ||
-      profile.display_name ||
-      "Worldwide Life Matter User";
-
-
-    profileCountry.textContent =
-      "🌍 " +
-      (
-        profile.country ||
-        "Country not provided"
+    const nameElement =
+      document.getElementById(
+        "profile-name"
       );
 
 
-    profileBio.textContent =
-      profile.bio ||
-      "No bio available.";
+    if (nameElement) {
 
-
-    if (profile.avatar_url) {
-
-      profileAvatar.src =
-        profile.avatar_url;
+      nameElement.textContent =
+        profile.name ||
+        profile.username ||
+        profile.full_name ||
+        profile.display_name ||
+        "Worldwide Life Matter Member";
 
     }
 
 
-    if (profile.website) {
+    /* PROFILE PHOTO */
 
-      let website =
+    const avatar =
+      document.getElementById(
+        "profile-avatar"
+      );
+
+
+    if (
+      avatar &&
+      profile.avatar_url
+    ) {
+
+      avatar.src =
+        profile.avatar_url;
+
+    }
+    /* COUNTRY */
+
+    const country =
+      document.getElementById(
+        "profile-country"
+      );
+
+
+    if (country) {
+
+      country.textContent =
+        profile.country ||
+        "Not provided";
+
+    }
+
+
+    /* BIO */
+
+    const bio =
+      document.getElementById(
+        "profile-bio"
+      );
+
+
+    if (bio) {
+
+      bio.textContent =
+        profile.bio ||
+        "No bio available.";
+
+    }
+
+
+    /* WEBSITE */
+
+    const website =
+      document.getElementById(
+        "profile-website"
+      );
+
+    const noWebsite =
+      document.getElementById(
+        "no-website"
+      );
+
+
+    if (
+      website &&
+      profile.website
+    ) {
+
+      let websiteUrl =
         profile.website.trim();
 
 
       if (
-        !website.startsWith("http://") &&
-        !website.startsWith("https://")
+        !websiteUrl.startsWith(
+          "http://"
+        ) &&
+        !websiteUrl.startsWith(
+          "https://"
+        )
       ) {
 
-        website =
-          "https://" + website;
+        websiteUrl =
+          "https://" +
+          websiteUrl;
 
       }
 
 
-      profileWebsite.href =
-        website;
+      website.href =
+        websiteUrl;
 
-      profileWebsite.textContent =
+      website.textContent =
         profile.website;
 
-      profileWebsiteContainer.style.display =
-        "block";
+      website.style.display =
+        "inline";
 
-    } else {
 
-      profileWebsiteContainer.style.display =
+      if (noWebsite) {
+
+        noWebsite.style.display =
+          "none";
+
+      }
+
+    }
+
+
+    /* SHOW PROFILE */
+
+    if (loading) {
+
+      loading.style.display =
         "none";
 
     }
 
 
-    /* SHOW PROFILE NOW */
+    if (content) {
 
-    profileSection.style.display =
-      "flex";
-
-
-    loading.style.display =
-      "none";
-
-
-    /* ==========================
-       LOAD STORIES SEPARATELY
-    ========================== */
-
-    try {
-
-      const {
-        data: stories,
-        error: storiesError
-      } =
-        await window.supabaseClient
-          .from("stories")
-          .select("*")
-          .eq(
-            "user_id",
-            profileId
-          )
-          .order(
-            "created_at",
-            {
-              ascending: false
-            }
-          );
-
-
-      if (storiesError) {
-
-        console.error(
-          "Stories error:",
-          storiesError
-        );
-
-        storyCount.textContent =
-          "0";
-
-        userStories.innerHTML =
-          "<p>Stories could not be loaded.</p>";
-
-      } else {
-
-        storyCount.textContent =
-          stories.length;
-
-
-        displayStories(
-          stories
-        );
-
-
-        /* ========================
-           COUNT LIKES
-        ======================== */
-
-        let totalLikes = 0;
-
-
-        for (
-          const story of stories
-        ) {
-
-          const {
-            count
-          } =
-            await window.supabaseClient
-              .from("likes")
-              .select("*", {
-                count: "exact",
-                head: true
-              })
-              .eq(
-                "story_id",
-                story.id
-              );
-
-
-          totalLikes +=
-            count || 0;
-
-        }
-
-
-        likeCount.textContent =
-          totalLikes;
-
-      }
-
-
-      profileStats.style.display =
-        "flex";
-
-      storiesSection.style.display =
-        "block";
-
-
-    } catch (storyError) {
-
-      console.error(
-        "Story loading error:",
-        storyError
-      );
-
-      profileStats.style.display =
-        "flex";
-
-      storiesSection.style.display =
+      content.style.display =
         "block";
 
     }
 
 
+    /* LOAD STORIES */
+
+    await loadUserStories(
+      profileId
+    );
+
+
   } catch (error) {
 
     console.error(
-      "Profile error:",
+      "Public profile error:",
       error
     );
 
@@ -363,11 +344,91 @@ async function loadPublicProfile() {
 }
 
 
-function displayStories(stories) {
+/* =================================
+   LOAD USER STORIES
+================================= */
 
-  if (!stories || stories.length === 0) {
+async function loadUserStories(
+  profileId
+) {
 
-    userStories.innerHTML = `
+  const storiesContainer =
+    document.getElementById(
+      "user-stories"
+    );
+
+  const storyCount =
+    document.getElementById(
+      "story-count"
+    );
+
+  const likeCount =
+    document.getElementById(
+      "like-count"
+    );
+
+
+  if (!storiesContainer) {
+
+    return;
+
+  }
+
+
+  const {
+    data: stories,
+    error
+  } =
+    await window.supabaseClient
+      .from("stories")
+      .select("*")
+      .eq(
+        "user_id",
+        profileId
+      )
+      .order(
+        "created_at",
+        {
+          ascending: false
+        }
+      );
+
+
+  if (error) {
+
+    console.error(
+      "Stories error:",
+      error
+    );
+
+    storiesContainer.innerHTML =
+      "<p>Unable to load stories.</p>";
+
+    return;
+
+  }
+
+
+  /* STORY COUNT */
+
+  if (storyCount) {
+
+    storyCount.textContent =
+      stories
+        ? stories.length
+        : 0;
+
+  }
+
+
+  /* NO STORIES */
+
+  if (
+    !stories ||
+    stories.length === 0
+  ) {
+
+    storiesContainer.innerHTML = `
 
       <div class="empty-profile-stories">
 
@@ -379,99 +440,162 @@ function displayStories(stories) {
 
     `;
 
+
+    if (likeCount) {
+
+      likeCount.textContent =
+        "0";
+
+    }
+
     return;
 
   }
 
 
-  userStories.innerHTML = "";
+  /* PREPARE STORIES */
+
+  storiesContainer.innerHTML =
+    "";
+
+  let totalLikes =
+    0;
 
 
-  stories.forEach(
-    story => {
+  for (
+    const story of stories
+  ) {
 
-      let imageHtml = "";
-
-
-      if (story.image_url) {
-
-        imageHtml = `
-
-          <img
-            src="${escapeHtml(
-              story.image_url
-            )}"
-            alt="Story image"
-            class="profile-story-image"
-          >
-
-        `;
-
-      }
+    const {
+      count
+    } =
+      await window.supabaseClient
+        .from("likes")
+        .select("*", {
+          count: "exact",
+          head: true
+        })
+        .eq(
+          "story_id",
+          story.id
+        );
 
 
-      userStories.innerHTML += `
+    totalLikes +=
+      count || 0;
 
-        <article
-          class="profile-story-card"
+
+    let imageHtml =
+      "";
+
+
+    if (story.image_url) {
+
+      imageHtml = `
+
+        <img
+          src="${escapeHtml(
+            story.image_url
+          )}"
+          alt="Story image"
+          class="profile-story-image"
         >
-
-          ${imageHtml}
-
-          <div
-            class="profile-story-content"
-          >
-
-            <p
-              class="profile-story-category"
-            >
-              ${escapeHtml(
-                story.category ||
-                "Other"
-              )}
-            </p>
-
-
-            <h3>
-
-              ${escapeHtml(
-                story.title ||
-                "Untitled Story"
-              )}
-
-            </h3>
-
-
-            <p>
-
-              ${escapeHtml(
-                story.content ||
-                ""
-              )}
-
-            </p>
-
-
-            <small>
-
-              ${story.created_at
-                ? new Date(
-                    story.created_at
-                  ).toLocaleDateString()
-                : ""}
-
-            </small>
-
-          </div>
-
-        </article>
 
       `;
 
     }
-  );
+
+
+    let dateText =
+      "";
+
+
+    if (story.created_at) {
+
+      dateText =
+        new Date(
+          story.created_at
+        ).toLocaleDateString();
+
+    }
+
+
+    storiesContainer.innerHTML += `
+
+      <article
+        class="profile-story-card"
+      >
+
+        ${imageHtml}
+
+        <div
+          class="profile-story-content"
+        >
+
+          <p
+            class="profile-story-category"
+          >
+            ${escapeHtml(
+              story.category ||
+              "Other"
+            )}
+          </p>
+
+
+          <h3>
+            ${escapeHtml(
+              story.title ||
+              "Untitled Story"
+            )}
+          </h3>
+
+
+          <p>
+            ${escapeHtml(
+              story.content ||
+              ""
+            )}
+          </p>
+
+
+          <small>
+            ${escapeHtml(
+              dateText
+            )}
+          </small>
+
+
+          <br><br>
+
+
+          <a
+            href="stories.html"
+            class="read-story-link"
+          >
+            View Stories
+          </a>
+
+        </div>
+
+      </article>
+
+    `;
+
+  }
+
+
+  /* TOTAL LIKES */
+
+  if (likeCount) {
+
+    likeCount.textContent =
+      totalLikes;
+
+  }
 
 }
-
+/* =================================
+   START PUBLIC PROFILE
+================================= */
 
 loadPublicProfile();
