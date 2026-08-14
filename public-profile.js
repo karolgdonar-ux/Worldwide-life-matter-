@@ -1,4 +1,7 @@
-let currentUser = null;
+/* =================================
+   PUBLIC PROFILE
+   PART 1 OF 3
+================================= */
 
 
 /* =================================
@@ -138,6 +141,10 @@ async function loadPublicProfile() {
     }
 
 
+    /* =============================
+       GET PROFILE
+    ============================= */
+
     const {
       data: profile,
       error: profileError
@@ -174,7 +181,9 @@ async function loadPublicProfile() {
     }
 
 
-    /* PROFILE NAME */
+    /* =============================
+       PROFILE NAME
+    ============================= */
 
     const nameElement =
       document.getElementById(
@@ -194,7 +203,9 @@ async function loadPublicProfile() {
     }
 
 
-    /* PROFILE PHOTO */
+    /* =============================
+       PROFILE PHOTO
+    ============================= */
 
     const avatar =
       document.getElementById(
@@ -211,7 +222,11 @@ async function loadPublicProfile() {
         profile.avatar_url;
 
     }
-    /* COUNTRY */
+
+
+    /* =============================
+       COUNTRY
+    ============================= */
 
     const country =
       document.getElementById(
@@ -228,7 +243,9 @@ async function loadPublicProfile() {
     }
 
 
-    /* BIO */
+    /* =============================
+       BIO
+    ============================= */
 
     const bio =
       document.getElementById(
@@ -245,7 +262,9 @@ async function loadPublicProfile() {
     }
 
 
-    /* WEBSITE */
+    /* =============================
+       WEBSITE
+    ============================= */
 
     const website =
       document.getElementById(
@@ -303,7 +322,9 @@ async function loadPublicProfile() {
     }
 
 
-    /* SHOW PROFILE */
+    /* =============================
+       SHOW PROFILE
+    ============================= */
 
     if (loading) {
 
@@ -321,13 +342,13 @@ async function loadPublicProfile() {
     }
 
 
-    /* LOAD STORIES */
+    /* =============================
+       LOAD STORIES
+    ============================= */
 
     await loadUserStories(
       profileId
     );
-
-
   } catch (error) {
 
     console.error(
@@ -466,6 +487,8 @@ async function loadUserStories(
     const story of stories
   ) {
 
+    /* GET LIKE COUNT */
+
     const {
       count
     } =
@@ -484,6 +507,8 @@ async function loadUserStories(
     totalLikes +=
       count || 0;
 
+
+    /* STORY IMAGE */
 
     let imageHtml =
       "";
@@ -506,6 +531,8 @@ async function loadUserStories(
     }
 
 
+    /* STORY DATE */
+
     let dateText =
       "";
 
@@ -519,6 +546,8 @@ async function loadUserStories(
 
     }
 
+
+    /* STORY CARD */
 
     storiesContainer.innerHTML += `
 
@@ -535,33 +564,41 @@ async function loadUserStories(
           <p
             class="profile-story-category"
           >
+
             ${escapeHtml(
               story.category ||
               "Other"
             )}
+
           </p>
 
 
           <h3>
+
             ${escapeHtml(
               story.title ||
               "Untitled Story"
             )}
+
           </h3>
 
 
           <p>
+
             ${escapeHtml(
               story.content ||
               ""
             )}
+
           </p>
 
 
           <small>
+
             ${escapeHtml(
               dateText
             )}
+
           </small>
 
 
@@ -572,7 +609,9 @@ async function loadUserStories(
             href="stories.html"
             class="read-story-link"
           >
+
             View Stories
+
           </a>
 
         </div>
@@ -595,7 +634,346 @@ async function loadUserStories(
 
 }
 /* =================================
+   FOLLOW SYSTEM
+================================= */
+
+async function setupFollowSystem(
+  profileId
+) {
+
+  const followersCount =
+    document.getElementById(
+      "followers-count"
+    );
+
+  const followingCount =
+    document.getElementById(
+      "following-count"
+    );
+
+  const followButton =
+    document.getElementById(
+      "follow-button"
+    );
+
+  const followMessage =
+    document.getElementById(
+      "follow-message"
+    );
+
+
+  if (
+    !followersCount ||
+    !followingCount ||
+    !followButton
+  ) {
+
+    return;
+
+  }
+
+
+  /* GET CURRENT USER */
+
+  const {
+    data: {
+      user
+    }
+  } =
+    await window.supabaseClient
+      .auth
+      .getUser();
+
+
+  currentUser =
+    user || null;
+
+
+  /* FOLLOWERS COUNT */
+
+  const {
+    count: followers
+  } =
+    await window.supabaseClient
+      .from("followers")
+      .select("*", {
+        count: "exact",
+        head: true
+      })
+      .eq(
+        "following_id",
+        profileId
+      );
+
+
+  followersCount.textContent =
+    followers || 0;
+
+
+  /* FOLLOWING COUNT */
+
+  const {
+    count: following
+  } =
+    await window.supabaseClient
+      .from("followers")
+      .select("*", {
+        count: "exact",
+        head: true
+      })
+      .eq(
+        "follower_id",
+        profileId
+      );
+
+
+  followingCount.textContent =
+    following || 0;
+
+
+  /* CANNOT FOLLOW YOURSELF */
+
+  if (
+    currentUser &&
+    currentUser.id === profileId
+  ) {
+
+    followButton.style.display =
+      "none";
+
+    return;
+
+  }
+
+
+  /* NOT LOGGED IN */
+
+  if (!currentUser) {
+
+    followButton.textContent =
+      "Log in to Follow";
+
+    followButton.style.display =
+      "inline-block";
+
+    followButton.onclick =
+      function () {
+
+        window.location.href =
+          "login.html";
+
+      };
+
+    return;
+
+  }
+
+
+  /* CHECK FOLLOW STATUS */
+
+  const {
+    data: existingFollow,
+    error: followCheckError
+  } =
+    await window.supabaseClient
+      .from("followers")
+      .select("id")
+      .eq(
+        "follower_id",
+        currentUser.id
+      )
+      .eq(
+        "following_id",
+        profileId
+      )
+      .maybeSingle();
+
+
+  if (followCheckError) {
+
+    console.error(
+      "Follow check error:",
+      followCheckError
+    );
+
+  }
+
+
+  if (existingFollow) {
+
+    followButton.textContent =
+      "Following";
+
+    followButton.dataset.following =
+      "true";
+
+  } else {
+
+    followButton.textContent =
+      "Follow";
+
+    followButton.dataset.following =
+      "false";
+
+  }
+
+
+  followButton.style.display =
+    "inline-block";
+
+
+  /* FOLLOW / UNFOLLOW */
+
+  followButton.onclick =
+    async function () {
+
+      followButton.disabled =
+        true;
+
+
+      if (
+        followButton.dataset.following ===
+        "true"
+      ) {
+
+
+        /* UNFOLLOW */
+
+        const {
+          error
+        } =
+          await window.supabaseClient
+            .from("followers")
+            .delete()
+            .eq(
+              "follower_id",
+              currentUser.id
+            )
+            .eq(
+              "following_id",
+              profileId
+            );
+
+
+        if (error) {
+
+          console.error(error);
+
+          if (followMessage) {
+
+            followMessage.textContent =
+              error.message;
+
+          }
+
+        } else {
+
+          followButton.textContent =
+            "Follow";
+
+          followButton.dataset.following =
+            "false";
+
+
+          const currentCount =
+            parseInt(
+              followersCount.textContent
+            ) || 0;
+
+
+          followersCount.textContent =
+            Math.max(
+              0,
+              currentCount - 1
+            );
+
+        }
+
+
+      } else {
+
+
+        /* FOLLOW */
+
+        const {
+          error
+        } =
+          await window.supabaseClient
+            .from("followers")
+            .insert([
+              {
+                follower_id:
+                  currentUser.id,
+
+                following_id:
+                  profileId
+              }
+            ]);
+
+
+        if (error) {
+
+          console.error(error);
+
+          if (followMessage) {
+
+            followMessage.textContent =
+              error.message;
+
+          }
+
+        } else {
+
+          followButton.textContent =
+            "Following";
+
+          followButton.dataset.following =
+            "true";
+
+
+          const currentCount =
+            parseInt(
+              followersCount.textContent
+            ) || 0;
+
+
+          followersCount.textContent =
+            currentCount + 1;
+
+        }
+
+      }
+
+
+      followButton.disabled =
+        false;
+
+    };
+
+}
+
+
+/* =================================
    START PUBLIC PROFILE
 ================================= */
 
-loadPublicProfile();
+async function startPublicProfile() {
+
+  await loadPublicProfile();
+
+  const profileId =
+    getProfileId();
+
+
+  if (profileId) {
+
+    await setupFollowSystem(
+      profileId
+    );
+
+  }
+
+}
+
+
+startPublicProfile();

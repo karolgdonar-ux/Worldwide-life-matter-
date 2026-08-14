@@ -10,7 +10,9 @@
     content="width=device-width, initial-scale=1.0"
   >
 
-  <title>Public Profile - Worldwide Life Matter</title>
+  <title>
+    Public Profile - Worldwide Life Matter
+  </title>
 
   <link
     rel="stylesheet"
@@ -53,15 +55,12 @@
 </header>
 
 
-
-<main>
-
-
-  <h1>Public Profile</h1>
+<main class="public-profile-page">
 
 
   <div
     id="profile-loading"
+    class="profile-loading"
   >
 
     <p>
@@ -71,6 +70,18 @@
   </div>
 
 
+  <div
+    id="profile-error"
+    class="profile-error"
+    style="display:none;"
+  >
+
+    <p>
+      Unable to load this profile.
+    </p>
+
+  </div>
+
 
   <div
     id="profile-content"
@@ -78,16 +89,12 @@
   >
 
 
-    <!-- PROFILE INFORMATION -->
+    <!-- PROFILE HEADER -->
 
-    <section
-      class="public-profile"
-    >
+    <section class="public-profile-card">
 
 
-      <div
-        class="public-profile-picture"
-      >
+      <div class="public-profile-picture">
 
         <img
           id="profile-avatar"
@@ -99,26 +106,20 @@
       </div>
 
 
+      <div class="public-profile-info">
 
-      <div
-        class="public-profile-info"
-      >
-
-        <h2
-          id="profile-name"
-        >
+        <h1 id="profile-name">
           User
-        </h2>
+        </h1>
 
 
-        <p>
+        <p class="profile-country">
+
           <strong>
-            Country:
+            🌍 Country:
           </strong>
 
-          <span
-            id="profile-country"
-          >
+          <span id="profile-country">
             Not provided
           </span>
 
@@ -127,52 +128,44 @@
 
         <p
           id="profile-bio"
+          class="profile-bio"
         >
         </p>
 
 
-        <p>
+        <p id="profile-website-container">
 
           <strong>
-            Website:
+            🔗 Website:
           </strong>
 
           <a
             id="profile-website"
             href="#"
             target="_blank"
+            rel="noopener noreferrer"
             style="display:none;"
           >
             Visit Website
           </a>
 
-          <span
-            id="no-website"
-          >
+          <span id="no-website">
             Not provided
           </span>
 
         </p>
 
-
       </div>
 
 
     </section>
-
-
-
     <!-- PROFILE STATISTICS -->
 
-    <section
-      class="profile-stats"
-    >
+    <section class="profile-stats">
 
-      <div>
+      <div class="profile-stat">
 
-        <strong
-          id="story-count"
-        >
+        <strong id="story-count">
           0
         </strong>
 
@@ -183,11 +176,9 @@
       </div>
 
 
-      <div>
+      <div class="profile-stat">
 
-        <strong
-          id="like-count"
-        >
+        <strong id="like-count">
           0
         </strong>
 
@@ -200,19 +191,65 @@
     </section>
 
 
+    <!-- FOLLOW SYSTEM -->
+
+    <section class="follow-section">
+
+      <div class="follow-stats">
+
+        <div class="follow-stat">
+
+          <strong id="followers-count">
+            0
+          </strong>
+
+          <span>
+            Followers
+          </span>
+
+        </div>
+
+
+        <div class="follow-stat">
+
+          <strong id="following-count">
+            0
+          </strong>
+
+          <span>
+            Following
+          </span>
+
+        </div>
+
+      </div>
+
+
+      <button
+        id="follow-button"
+        style="display:none;"
+      >
+        Follow
+      </button>
+
+
+      <p
+        id="follow-message"
+      ></p>
+
+    </section>
+
 
     <!-- USER STORIES -->
 
-    <section>
+    <section class="user-profile-stories">
 
       <h2>
         Stories by this user
       </h2>
 
 
-      <div
-        id="user-stories"
-      >
+      <div id="user-stories">
 
         <p>
           Loading stories...
@@ -236,24 +273,10 @@
 
 
   </div>
-
-
-
-  <div
-    id="profile-error"
-    style="display:none;"
-  >
-
-    <p>
-      Unable to load this profile.
-    </p>
-
-  </div>
-
-
 </main>
 
 
+<!-- SUPABASE -->
 
 <script
   src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"
@@ -262,6 +285,9 @@
 <script
   src="supabase.js"
 ></script>
+
+
+<!-- PUBLIC PROFILE JAVASCRIPT -->
 
 <script
   src="public-profile.js"
