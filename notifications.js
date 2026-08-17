@@ -14,7 +14,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
 
   // Create notification button
-  const header = document.querySelector(".top-header");
+  const header = document.querySelector(".top-header nav");
 
   if (!header) {
     console.error("Header not found.");
