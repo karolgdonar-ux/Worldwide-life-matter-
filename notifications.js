@@ -93,7 +93,10 @@ document.addEventListener("DOMContentLoaded", async () => {
         "New notification";
 
       return `
-        <div style="
+  <div
+    class="notification-item"
+    data-story-id="${notification.reference_id || ""}"
+    style="
           padding:10px;
           margin-bottom:8px;
           border-bottom:1px solid #ddd;
@@ -113,12 +116,31 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   // Open / close notification panel
   notificationButton.addEventListener("click", async () => {
-    if (panel.style.display === "none") {
-      panel.style.display = "block";
-      await loadNotifications();
-    } else {
-      panel.style.display = "none";
-    }
+  if (panel.style.display === "none") {
+    panel.style.display = "block";
+    await loadNotifications();
+  } else {
+    panel.style.display = "none";
+  }
+});
+
+document
+  .getElementById("notification-list")
+  .addEventListener("click", (event) => {
+
+    const notification =
+      event.target.closest(".notification-item");
+
+    if (!notification) return;
+
+    const storyId =
+      notification.dataset.storyId;
+
+    if (!storyId) return;
+
+    window.location.href =
+      "stories.html#story-" +
+      encodeURIComponent(storyId);
   });
 
   // Listen for new notifications
