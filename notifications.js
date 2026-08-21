@@ -6,36 +6,56 @@ document.addEventListener("DOMContentLoaded", async () => {
     return;
   }
 
-  const { data: { user }, error: userError } = await supabase.auth.getUser();
+  const {
+    data: { user },
+    error: userError
+  } = await supabase.auth.getUser();
 
   if (userError || !user) {
-    console.log("No logged-in user. Notifications are hidden.");
+    console.log("No logged-in user.");
     return;
   }
 
-  // Create notification button
-  const header = document.querySelector(".top-header nav");
+  // Use the notification button already in index.html
+  const notificationButton =
+    document.getElementById("notification-button");
 
-  if (!header) {
-    console.error("Header not found.");
+  const notificationCount =
+    document.getElementById("notification-count");
+
+  if (!notificationButton || !notificationCount) {
+    console.error("Notification button not found.");
     return;
   }
 
-  const notificationButton = document.createElement("button");
-  notificationButton.id = "notification-button";
-  notificationButton.innerHTML = "🔔 <span id=\"notification-count\">0</span>";
-  notificationButton.title = "Notifications";
+  // Create notification panel
+  const panel = document.createElement("div");
+  panel.id = "notification-panel";
 
-  notificationButton.style.cssText = `
-    margin-left: 15px;
-    padding: 8px 12px;
-    border: none;
-    border-radius: 8px;
-    cursor: pointer;
-    font-size: 18px;
+  panel.style.cssText = `
+    display: none;
+    position: absolute;
+    top: 60px;
+    right: 10px;
+    width: 300px;
+    max-height: 400px;
+    overflow-y: auto;
+    background: white;
+    color: #222;
+    border-radius: 12px;
+    padding: 15px;
+    box-shadow: 0 5px 20px rgba(0,0,0,0.25);
+    z-index: 9999;
   `;
 
-  header.appendChild(notificationButton);
+  panel.innerHTML = `
+    <h3 style="margin-top:0;">🔔 Notifications</h3>
+    <div id="notification-list">
+      Loading...
+    </div>
+  `;
+
+  document.body.appendChild(panel);
 
   // Load notifications
   async function loadNotifications() {
@@ -50,14 +70,56 @@ document.addEventListener("DOMContentLoaded", async () => {
       return;
     }
 
-    const unread = data.filter(notification => !notification.is_read);
+    const unread = data.filter(
+      notification => !notification.is_read
+    );
 
-    document.getElementById("notification-count").textContent = unread.length;
+    notificationCount.textContent = unread.length;
 
-    console.log("Notifications:", data);
+    const list = document.getElementById("notification-list");
+
+    if (data.length === 0) {
+      list.innerHTML = `
+        <p>No notifications yet.</p>
+      `;
+      return;
+    }
+
+    list.innerHTML = data.map(notification => {
+      const message =
+        notification.message ||
+        notification.content ||
+        notification.title ||
+        "New notification";
+
+      return `
+        <div style="
+          padding:10px;
+          margin-bottom:8px;
+          border-bottom:1px solid #ddd;
+          ${notification.is_read ? "opacity:0.6;" : ""}
+        ">
+          <strong>${message}</strong>
+          <br>
+          <small>
+            ${new Date(notification.created_at).toLocaleString()}
+          </small>
+        </div>
+      `;
+    }).join("");
   }
 
   await loadNotifications();
+
+  // Open / close notification panel
+  notificationButton.addEventListener("click", async () => {
+    if (panel.style.display === "none") {
+      panel.style.display = "block";
+      await loadNotifications();
+    } else {
+      panel.style.display = "none";
+    }
+  });
 
   // Listen for new notifications
   supabase
@@ -70,29 +132,13 @@ document.addEventListener("DOMContentLoaded", async () => {
         table: "notifications",
         filter: "user_id=eq." + user.id
       },
-      (payload) => {
+      async (payload) => {
         console.log("New notification:", payload.new);
-        loadNotifications();
-        alert("🔔 You have a new notification!");
+
+        await loadNotifications();
+
+        panel.style.display = "block";
       }
     )
     .subscribe();
-
-  // Mark unread notifications as read
-  notificationButton.addEventListener("click", async () => {
-    const { error } = await supabase
-      .from("notifications")
-      .update({ is_read: true })
-      .eq("user_id", user.id)
-      .eq("is_read", false);
-
-    if (error) {
-      console.error("Error marking notifications as read:", error);
-      return;
-    }
-
-    document.getElementById("notification-count").textContent = "0";
-
-    alert("Notifications marked as read.");
-  });
 });
