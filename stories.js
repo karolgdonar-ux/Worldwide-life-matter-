@@ -61,7 +61,7 @@ async function loadStories() {
 
   container.innerHTML += `
 
-  <div class="story" id="story-${escapeHtml(story.id)}">
+  <div class="story">
 
 
   const {
