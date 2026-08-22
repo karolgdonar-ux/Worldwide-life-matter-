@@ -59,21 +59,20 @@ async function loadStories() {
       : "";
 
 
-  container.innerHTML += `
+  container.innerHTML =
+  "<p>Loading stories...</p>";
 
-  <div class="story">
 
-
-  const {
-    data: stories,
-    error
-  } =
-    await window.supabaseClient
-      .from("stories")
-      .select("*")
-      .order("created_at", {
-        ascending: false
-      });
+const {
+  data: stories,
+  error
+} =
+  await window.supabaseClient
+    .from("stories")
+    .select("*")
+    .order("created_at", {
+      ascending: false
+    });
 
 
   if (error) {
