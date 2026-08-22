@@ -726,39 +726,38 @@ function openStoryFromNotification() {
     );
 
   if (!storyId) {
-
     return;
-
   }
 
-  setTimeout(() => {
+  function findStory() {
 
     const storyElement =
       document.getElementById(
         "story-" + storyId
       );
 
-    if (storyElement) {
-
-      storyElement.scrollIntoView({
-        behavior: "smooth",
-        block: "start"
-      });
-
-      storyElement.style.outline =
-        "3px solid orange";
-
-      setTimeout(() => {
-
-        storyElement.style.outline =
-          "";
-
-      }, 3000);
-
+    if (!storyElement) {
+      // Stories may still be loading.
+      setTimeout(findStory, 300);
+      return;
     }
 
-  }, 1000);
+    storyElement.scrollIntoView({
+      behavior: "smooth",
+      block: "start"
+    });
 
+    storyElement.style.outline =
+      "3px solid orange";
+
+    setTimeout(() => {
+
+      storyElement.style.outline = "";
+
+    }, 3000);
+  }
+
+  findStory();
 }
 
 
