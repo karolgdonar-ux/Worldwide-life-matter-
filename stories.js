@@ -60,19 +60,19 @@ async function loadStories() {
 
 
   container.innerHTML =
-  "<p>Loading stories...</p>";
+    "<p>Loading stories...</p>";
 
 
-const {
-  data: stories,
-  error
-} =
-  await window.supabaseClient
-    .from("stories")
-    .select("*")
-    .order("created_at", {
-      ascending: false
-    });
+  const {
+    data: stories,
+    error
+  } =
+    await window.supabaseClient
+      .from("stories")
+      .select("*")
+      .order("created_at", {
+        ascending: false
+      });
 
 
   if (error) {
@@ -271,10 +271,8 @@ const {
       commentsHtml =
         "<p>No comments yet.</p>";
 
-    }
-
-
-    /* ================================
+     }
+         /* ================================
        AUTHOR PROFILE LINK
     ================================= */
 
@@ -423,7 +421,10 @@ const {
 
     container.innerHTML += `
 
-      <div class="story">
+      <div
+        class="story"
+        id="story-${escapeHtml(story.id)}"
+      >
 
         ${imageHtml}
 
@@ -517,9 +518,7 @@ const {
 
   }
 
-}
-
-
+         }
 /* ================================
    LIKE STORY
 ================================ */
@@ -715,20 +714,65 @@ function escapeHtml(
 
 
 /* ================================
+   OPEN STORY FROM URL
+================================ */
+
+function openStoryFromNotification() {
+
+  const storyId =
+    window.location.hash.replace(
+      "#story-",
+      ""
+    );
+
+  if (!storyId) {
+
+    return;
+
+  }
+
+  setTimeout(() => {
+
+    const storyElement =
+      document.getElementById(
+        "story-" + storyId
+      );
+
+    if (storyElement) {
+
+      storyElement.scrollIntoView({
+        behavior: "smooth",
+        block: "start"
+      });
+
+      storyElement.style.outline =
+        "3px solid orange";
+
+      setTimeout(() => {
+
+        storyElement.style.outline =
+          "";
+
+      }, 3000);
+
+    }
+
+  }, 1000);
+
+}
+
+
+/* ================================
    START STORIES PAGE
 ================================ */
 
 async function startStoriesPage() {
 
-  alert(
-    "Stories JavaScript is running"
-  );
-
-
   await getCurrentUser();
 
-
   await loadStories();
+
+  openStoryFromNotification();
 
 }
 
