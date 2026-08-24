@@ -43,7 +43,7 @@ function escapeHtml(value) {
 
 
 /* =================================
-   SHOW PROFILE ERROR
+   SHOW ERROR
 ================================= */
 
 function showError(message) {
@@ -425,17 +425,21 @@ async function loadPublicProfile() {
 
     showError(
       error.message ||
-      "Unknown error"
+      "Unable to load profile."
     );
 
   }
 
-     }
+}
+
+
 /* =================================
    LOAD USER STORIES
 ================================= */
 
-async function loadUserStories(profileId) {
+async function loadUserStories(
+  profileId
+) {
 
   const storiesContainer =
     document.getElementById(
@@ -487,19 +491,17 @@ async function loadUserStories(profileId) {
     );
 
     storiesContainer.innerHTML = `
+
       <p>
         Unable to load stories.
       </p>
+
     `;
 
     return;
 
   }
 
-
-  /* =============================
-     STORY COUNT
-  ============================= */
 
   if (storyCount) {
 
@@ -510,10 +512,6 @@ async function loadUserStories(profileId) {
 
   }
 
-
-  /* =============================
-     NO STORIES
-  ============================= */
 
   if (
     !stories ||
@@ -546,10 +544,6 @@ async function loadUserStories(profileId) {
   }
 
 
-  /* =============================
-     PREPARE STORIES
-  ============================= */
-
   storiesContainer.innerHTML =
     "";
 
@@ -560,7 +554,6 @@ async function loadUserStories(profileId) {
   for (
     const story of stories
   ) {
-
 
     /* =========================
        GET LIKE COUNT
@@ -654,10 +647,8 @@ async function loadUserStories(profileId) {
 
       `;
 
-    }
-
-
-    /* =========================
+}
+     /* =========================
        STORY DATE
     ========================= */
 
@@ -827,7 +818,7 @@ async function setupFollowSystem(
     error: followersError
   } =
     await window.supabaseClient
-      .from("follows")
+      .from("followers")
       .select("*", {
         count: "exact",
         head: true
@@ -861,7 +852,7 @@ async function setupFollowSystem(
     error: followingError
   } =
     await window.supabaseClient
-      .from("follows")
+      .from("followers")
       .select("*", {
         count: "exact",
         head: true
@@ -937,7 +928,7 @@ async function setupFollowSystem(
     error: followCheckError
   } =
     await window.supabaseClient
-      .from("follows")
+      .from("followers")
       .select("id")
       .eq(
         "follower_id",
@@ -1007,7 +998,7 @@ async function setupFollowSystem(
           error
         } =
           await window.supabaseClient
-            .from("follows")
+            .from("followers")
             .delete()
             .eq(
               "follower_id",
@@ -1056,7 +1047,6 @@ async function setupFollowSystem(
 
         }
 
-
       } else {
 
         /* =========================
@@ -1067,7 +1057,7 @@ async function setupFollowSystem(
           error
         } =
           await window.supabaseClient
-            .from("follows")
+            .from("followers")
             .insert([
               {
                 follower_id:
@@ -1114,6 +1104,14 @@ async function setupFollowSystem(
         }
 
       }
+
+
+      followButton.disabled =
+        false;
+
+    };
+
+           }
 /* =================================
    START PUBLIC PROFILE
 ================================= */
@@ -1154,6 +1152,13 @@ async function startPublicProfile() {
       return;
 
     }
+
+
+    /* =============================
+       GET CURRENT USER
+    ============================= */
+
+    await getCurrentUser();
 
 
     /* =============================
@@ -1207,13 +1212,5 @@ if (
 
   startPublicProfile();
 
-       }
-
-
-      followButton.disabled =
-        false;
-
-    };
-
 }
-
+     
