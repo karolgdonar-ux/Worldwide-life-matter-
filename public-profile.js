@@ -1,11 +1,14 @@
 /* =================================
+   WORLDWIDE LIFE MATTER
    PUBLIC PROFILE
    PART 1 OF 3
 ================================= */
 
+let currentUser = null;
+
 
 /* =================================
-   GET PROFILE ID
+   GET PROFILE ID FROM URL
 ================================= */
 
 function getProfileId() {
@@ -40,7 +43,7 @@ function escapeHtml(value) {
 
 
 /* =================================
-   SHOW ERROR
+   SHOW PROFILE ERROR
 ================================= */
 
 function showError(message) {
@@ -92,6 +95,52 @@ function showError(message) {
     `;
 
   }
+
+}
+
+
+/* =================================
+   GET CURRENT USER
+================================= */
+
+async function getCurrentUser() {
+
+  if (!window.supabaseClient) {
+
+    currentUser = null;
+
+    return null;
+
+  }
+
+
+  const {
+    data,
+    error
+  } =
+    await window.supabaseClient
+      .auth
+      .getUser();
+
+
+  if (error) {
+
+    console.error(
+      "Current user error:",
+      error
+    );
+
+    currentUser = null;
+
+    return null;
+
+  }
+
+
+  currentUser =
+    data.user || null;
+
+  return currentUser;
 
 }
 
@@ -319,6 +368,22 @@ async function loadPublicProfile() {
 
       }
 
+    } else {
+
+      if (website) {
+
+        website.style.display =
+          "none";
+
+      }
+
+      if (noWebsite) {
+
+        noWebsite.style.display =
+          "inline";
+
+      }
+
     }
 
 
@@ -343,12 +408,14 @@ async function loadPublicProfile() {
 
 
     /* =============================
-       LOAD STORIES
+       LOAD USER STORIES
     ============================= */
 
     await loadUserStories(
       profileId
     );
+
+
   } catch (error) {
 
     console.error(
@@ -357,21 +424,18 @@ async function loadPublicProfile() {
     );
 
     showError(
-      error.message
+      error.message ||
+      "Unknown error"
     );
 
   }
 
-}
-
-
+     }
 /* =================================
    LOAD USER STORIES
 ================================= */
 
-async function loadUserStories(
-  profileId
-) {
+async function loadUserStories(profileId) {
 
   const storiesContainer =
     document.getElementById(
@@ -422,15 +486,20 @@ async function loadUserStories(
       error
     );
 
-    storiesContainer.innerHTML =
-      "<p>Unable to load stories.</p>";
+    storiesContainer.innerHTML = `
+      <p>
+        Unable to load stories.
+      </p>
+    `;
 
     return;
 
   }
 
 
-  /* STORY COUNT */
+  /* =============================
+     STORY COUNT
+  ============================= */
 
   if (storyCount) {
 
@@ -442,7 +511,9 @@ async function loadUserStories(
   }
 
 
-  /* NO STORIES */
+  /* =============================
+     NO STORIES
+  ============================= */
 
   if (
     !stories ||
@@ -454,7 +525,8 @@ async function loadUserStories(
       <div class="empty-profile-stories">
 
         <p>
-          This user has not shared any stories yet.
+          This user has not shared
+          any stories yet.
         </p>
 
       </div>
@@ -474,7 +546,9 @@ async function loadUserStories(
   }
 
 
-  /* PREPARE STORIES */
+  /* =============================
+     PREPARE STORIES
+  ============================= */
 
   storiesContainer.innerHTML =
     "";
@@ -487,10 +561,14 @@ async function loadUserStories(
     const story of stories
   ) {
 
-    /* GET LIKE COUNT */
+
+    /* =========================
+       GET LIKE COUNT
+    ========================= */
 
     const {
-      count
+      count,
+      error: likeError
     } =
       await window.supabaseClient
         .from("likes")
@@ -504,11 +582,23 @@ async function loadUserStories(
         );
 
 
+    if (likeError) {
+
+      console.error(
+        "Like count error:",
+        likeError
+      );
+
+    }
+
+
     totalLikes +=
       count || 0;
 
 
-    /* STORY IMAGE */
+    /* =========================
+       STORY IMAGE
+    ========================= */
 
     let imageHtml =
       "";
@@ -531,7 +621,45 @@ async function loadUserStories(
     }
 
 
-    /* STORY DATE */
+    /* =========================
+       STORY VIDEO
+    ========================= */
+
+    let videoHtml =
+      "";
+
+
+    if (story.video_url) {
+
+      videoHtml = `
+
+        <video
+          class="profile-story-video"
+          controls
+          preload="metadata"
+          width="100%"
+        >
+
+          <source
+            src="${escapeHtml(
+              story.video_url
+            )}"
+            type="video/mp4"
+          >
+
+          Your browser does not
+          support video playback.
+
+        </video>
+
+      `;
+
+    }
+
+
+    /* =========================
+       STORY DATE
+    ========================= */
 
     let dateText =
       "";
@@ -547,7 +675,9 @@ async function loadUserStories(
     }
 
 
-    /* STORY CARD */
+    /* =========================
+       STORY CARD
+    ========================= */
 
     storiesContainer.innerHTML += `
 
@@ -556,6 +686,8 @@ async function loadUserStories(
       >
 
         ${imageHtml}
+
+        ${videoHtml}
 
         <div
           class="profile-story-content"
@@ -606,11 +738,13 @@ async function loadUserStories(
 
 
           <a
-            href="stories.html"
+            href="stories.html#story-${encodeURIComponent(
+              story.id
+            )}"
             class="read-story-link"
           >
 
-            View Stories
+            View Story
 
           </a>
 
@@ -623,7 +757,9 @@ async function loadUserStories(
   }
 
 
-  /* TOTAL LIKES */
+  /* =============================
+     TOTAL LIKES
+  ============================= */
 
   if (likeCount) {
 
@@ -633,6 +769,8 @@ async function loadUserStories(
   }
 
 }
+
+
 /* =================================
    FOLLOW SYSTEM
 ================================= */
@@ -673,29 +811,23 @@ async function setupFollowSystem(
   }
 
 
-  /* GET CURRENT USER */
+  /* =============================
+     GET CURRENT USER
+  ============================= */
+
+  await getCurrentUser();
+
+
+  /* =============================
+     FOLLOWERS COUNT
+  ============================= */
 
   const {
-    data: {
-      user
-    }
+    count: followers,
+    error: followersError
   } =
     await window.supabaseClient
-      .auth
-      .getUser();
-
-
-  currentUser =
-    user || null;
-
-
-  /* FOLLOWERS COUNT */
-
-  const {
-    count: followers
-  } =
-    await window.supabaseClient
-      .from("followers")
+      .from("follows")
       .select("*", {
         count: "exact",
         head: true
@@ -706,17 +838,30 @@ async function setupFollowSystem(
       );
 
 
+  if (followersError) {
+
+    console.error(
+      "Followers count error:",
+      followersError
+    );
+
+  }
+
+
   followersCount.textContent =
     followers || 0;
 
 
-  /* FOLLOWING COUNT */
+  /* =============================
+     FOLLOWING COUNT
+  ============================= */
 
   const {
-    count: following
+    count: following,
+    error: followingError
   } =
     await window.supabaseClient
-      .from("followers")
+      .from("follows")
       .select("*", {
         count: "exact",
         head: true
@@ -727,11 +872,23 @@ async function setupFollowSystem(
       );
 
 
+  if (followingError) {
+
+    console.error(
+      "Following count error:",
+      followingError
+    );
+
+  }
+
+
   followingCount.textContent =
     following || 0;
 
 
-  /* CANNOT FOLLOW YOURSELF */
+  /* =============================
+     CANNOT FOLLOW YOURSELF
+  ============================= */
 
   if (
     currentUser &&
@@ -746,7 +903,9 @@ async function setupFollowSystem(
   }
 
 
-  /* NOT LOGGED IN */
+  /* =============================
+     NOT LOGGED IN
+  ============================= */
 
   if (!currentUser) {
 
@@ -769,14 +928,16 @@ async function setupFollowSystem(
   }
 
 
-  /* CHECK FOLLOW STATUS */
+  /* =============================
+     CHECK FOLLOW STATUS
+  ============================= */
 
   const {
     data: existingFollow,
     error: followCheckError
   } =
     await window.supabaseClient
-      .from("followers")
+      .from("follows")
       .select("id")
       .eq(
         "follower_id",
@@ -822,7 +983,9 @@ async function setupFollowSystem(
     "inline-block";
 
 
-  /* FOLLOW / UNFOLLOW */
+  /* =============================
+     FOLLOW / UNFOLLOW
+  ============================= */
 
   followButton.onclick =
     async function () {
@@ -836,14 +999,15 @@ async function setupFollowSystem(
         "true"
       ) {
 
-
-        /* UNFOLLOW */
+        /* =========================
+           UNFOLLOW
+        ========================= */
 
         const {
           error
         } =
           await window.supabaseClient
-            .from("followers")
+            .from("follows")
             .delete()
             .eq(
               "follower_id",
@@ -857,7 +1021,10 @@ async function setupFollowSystem(
 
         if (error) {
 
-          console.error(error);
+          console.error(
+            "Unfollow error:",
+            error
+          );
 
           if (followMessage) {
 
@@ -892,14 +1059,15 @@ async function setupFollowSystem(
 
       } else {
 
-
-        /* FOLLOW */
+        /* =========================
+           FOLLOW
+        ========================= */
 
         const {
           error
         } =
           await window.supabaseClient
-            .from("followers")
+            .from("follows")
             .insert([
               {
                 follower_id:
@@ -913,7 +1081,10 @@ async function setupFollowSystem(
 
         if (error) {
 
-          console.error(error);
+          console.error(
+            "Follow error:",
+            error
+          );
 
           if (followMessage) {
 
@@ -943,6 +1114,100 @@ async function setupFollowSystem(
         }
 
       }
+/* =================================
+   START PUBLIC PROFILE
+================================= */
+
+async function startPublicProfile() {
+
+  try {
+
+    /* =============================
+       CHECK SUPABASE
+    ============================= */
+
+    if (!window.supabaseClient) {
+
+      showError(
+        "Supabase is not connected."
+      );
+
+      return;
+
+    }
+
+
+    /* =============================
+       GET PROFILE ID
+    ============================= */
+
+    const profileId =
+      getProfileId();
+
+
+    if (!profileId) {
+
+      showError(
+        "No profile was specified."
+      );
+
+      return;
+
+    }
+
+
+    /* =============================
+       LOAD PROFILE
+    ============================= */
+
+    await loadPublicProfile();
+
+
+    /* =============================
+       LOAD FOLLOW SYSTEM
+    ============================= */
+
+    await setupFollowSystem(
+      profileId
+    );
+
+
+  } catch (error) {
+
+    console.error(
+      "Public profile startup error:",
+      error
+    );
+
+    showError(
+      error.message ||
+      "Unable to load profile."
+    );
+
+  }
+
+}
+
+
+/* =================================
+   START WHEN PAGE IS READY
+================================= */
+
+if (
+  document.readyState ===
+  "loading"
+) {
+
+  document.addEventListener(
+    "DOMContentLoaded",
+    startPublicProfile
+  );
+
+} else {
+
+  startPublicProfile();
+
+       }
 
 
       followButton.disabled =
@@ -952,28 +1217,3 @@ async function setupFollowSystem(
 
 }
 
-
-/* =================================
-   START PUBLIC PROFILE
-================================= */
-
-async function startPublicProfile() {
-
-  await loadPublicProfile();
-
-  const profileId =
-    getProfileId();
-
-
-  if (profileId) {
-
-    await setupFollowSystem(
-      profileId
-    );
-
-  }
-
-}
-
-
-startPublicProfile();
