@@ -1050,68 +1050,109 @@ async function setupFollowSystem(
       } else {
 
         /* =========================
-           FOLLOW
-        ========================= */
+   FOLLOW
+========================= */
 
-        const {
-          error
-        } =
-          await window.supabaseClient
-            .from("followers")
-            .insert([
-              {
-                follower_id:
-                  currentUser.id,
+const {
+  error
+} =
+  await window.supabaseClient
+    .from("followers")
+    .insert([
+      {
+        follower_id:
+          currentUser.id,
 
-                following_id:
-                  profileId
-              }
-            ]);
-
-
-        if (error) {
-
-          console.error(
-            "Follow error:",
-            error
-          );
-
-          if (followMessage) {
-
-            followMessage.textContent =
-              error.message;
-
-          }
-
-        } else {
-
-          followButton.textContent =
-            "Following";
-
-          followButton.dataset.following =
-            "true";
+        following_id:
+          profileId
+      }
+    ]);
 
 
-          const currentCount =
-            parseInt(
-              followersCount.textContent
-            ) || 0;
+if (error) {
+
+  console.error(
+    "Follow error:",
+    error
+  );
+
+  if (followMessage) {
+
+    followMessage.textContent =
+      error.message;
+
+  }
+
+} else {
+
+  /* =========================
+     UPDATE FOLLOW BUTTON
+  ========================= */
+
+  followButton.textContent =
+    "Following";
+
+  followButton.dataset.following =
+    "true";
 
 
-          followersCount.textContent =
-            currentCount + 1;
+  const currentCount =
+    parseInt(
+      followersCount.textContent
+    ) || 0;
 
+
+  followersCount.textContent =
+    currentCount + 1;
+
+
+  /* =========================
+     CREATE FOLLOW NOTIFICATION
+  ========================= */
+
+  const {
+    error: notificationError
+  } =
+    await window.supabaseClient
+      .from("notifications")
+      .insert([
+        {
+          user_id:
+            profileId,
+
+          message:
+            "Someone started following you.",
+
+          type:
+            "follow",
+
+          reference_id:
+            currentUser.id,
+
+          is_read:
+            false
         }
+      ]);
+
+
+  if (notificationError) {
+
+    console.error(
+      "Follow notification error:",
+      notificationError
+    );
+
+  }
+
+}
+
+
+followButton.disabled =
+  false;
+
+};
 
       }
-
-
-      followButton.disabled =
-        false;
-
-    };
-
-           }
 /* =================================
    START PUBLIC PROFILE
 ================================= */
