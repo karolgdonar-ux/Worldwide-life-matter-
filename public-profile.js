@@ -43,7 +43,7 @@ function escapeHtml(value) {
 
 
 /* =================================
-   SHOW ERROR
+   SHOW PROFILE ERROR
 ================================= */
 
 function showError(message) {
@@ -308,125 +308,102 @@ async function loadPublicProfile() {
         profile.bio ||
         "No bio available.";
 
-    }
+     }
+     /* =================================
+   WORLDWIDE LIFE MATTER
+   PUBLIC PROFILE
+   PART 1 OF 3
+================================= */
+
+let currentUser = null;
 
 
-    /* =============================
-       WEBSITE
-    ============================= */
+/* =================================
+   GET PROFILE ID FROM URL
+================================= */
 
-    const website =
-      document.getElementById(
-        "profile-website"
-      );
+function getProfileId() {
 
-    const noWebsite =
-      document.getElementById(
-        "no-website"
-      );
+  const params =
+    new URLSearchParams(
+      window.location.search
+    );
 
+  return params.get("id");
 
-    if (
-      website &&
-      profile.website
-    ) {
-
-      let websiteUrl =
-        profile.website.trim();
+}
 
 
-      if (
-        !websiteUrl.startsWith(
-          "http://"
-        ) &&
-        !websiteUrl.startsWith(
-          "https://"
-        )
-      ) {
+/* =================================
+   ESCAPE HTML
+================================= */
 
-        websiteUrl =
-          "https://" +
-          websiteUrl;
+function escapeHtml(value) {
 
-      }
+  const div =
+    document.createElement("div");
 
+  div.textContent =
+    value == null
+      ? ""
+      : String(value);
 
-      website.href =
-        websiteUrl;
+  return div.innerHTML;
 
-      website.textContent =
-        profile.website;
-
-      website.style.display =
-        "inline";
+}
 
 
-      if (noWebsite) {
+/* =================================
+   SHOW PROFILE ERROR
+================================= */
 
-        noWebsite.style.display =
-          "none";
+function showError(message) {
 
-      }
+  const loading =
+    document.getElementById(
+      "profile-loading"
+    );
 
-    } else {
+  const content =
+    document.getElementById(
+      "profile-content"
+    );
 
-      if (website) {
-
-        website.style.display =
-          "none";
-
-      }
-
-      if (noWebsite) {
-
-        noWebsite.style.display =
-          "inline";
-
-      }
-
-    }
-
-
-    /* =============================
-       SHOW PROFILE
-    ============================= */
-
-    if (loading) {
-
-      loading.style.display =
-        "none";
-
-    }
-
-
-    if (content) {
-
-      content.style.display =
-        "block";
-
-    }
-
-
-    /* =============================
-       LOAD USER STORIES
-    ============================= */
-
-    await loadUserStories(
-      profileId
+  const errorBox =
+    document.getElementById(
+      "profile-error"
     );
 
 
-  } catch (error) {
+  if (loading) {
 
-    console.error(
-      "Public profile error:",
-      error
-    );
+    loading.style.display =
+      "none";
 
-    showError(
-      error.message ||
-      "Unable to load profile."
-    );
+  }
+
+
+  if (content) {
+
+    content.style.display =
+      "none";
+
+  }
+
+
+  if (errorBox) {
+
+    errorBox.style.display =
+      "block";
+
+    errorBox.innerHTML = `
+
+      <p>
+        Error loading profile:
+        ${escapeHtml(message)}
+      </p>
+
+    `;
 
   }
 
@@ -434,341 +411,220 @@ async function loadPublicProfile() {
 
 
 /* =================================
-   LOAD USER STORIES
+   GET CURRENT USER
 ================================= */
 
-async function loadUserStories(
-  profileId
-) {
+async function getCurrentUser() {
 
-  const storiesContainer =
-    document.getElementById(
-      "user-stories"
-    );
+  if (!window.supabaseClient) {
 
-  const storyCount =
-    document.getElementById(
-      "story-count"
-    );
+    currentUser = null;
 
-  const likeCount =
-    document.getElementById(
-      "like-count"
-    );
-
-
-  if (!storiesContainer) {
-
-    return;
+    return null;
 
   }
 
 
   const {
-    data: stories,
+    data,
     error
   } =
     await window.supabaseClient
-      .from("stories")
-      .select("*")
-      .eq(
-        "user_id",
-        profileId
-      )
-      .order(
-        "created_at",
-        {
-          ascending: false
-        }
-      );
+      .auth
+      .getUser();
 
 
   if (error) {
 
     console.error(
-      "Stories error:",
+      "Current user error:",
       error
     );
 
-    storiesContainer.innerHTML = `
+    currentUser = null;
 
-      <p>
-        Unable to load stories.
-      </p>
-
-    `;
-
-    return;
+    return null;
 
   }
 
 
-  if (storyCount) {
+  currentUser =
+    data.user || null;
 
-    storyCount.textContent =
-      stories
-        ? stories.length
-        : 0;
-
-  }
-
-
-  if (
-    !stories ||
-    stories.length === 0
-  ) {
-
-    storiesContainer.innerHTML = `
-
-      <div class="empty-profile-stories">
-
-        <p>
-          This user has not shared
-          any stories yet.
-        </p>
-
-      </div>
-
-    `;
-
-
-    if (likeCount) {
-
-      likeCount.textContent =
-        "0";
-
-    }
-
-    return;
-
-  }
-
-
-  storiesContainer.innerHTML =
-    "";
-
-  let totalLikes =
-    0;
-
-
-  for (
-    const story of stories
-  ) {
-
-    /* =========================
-       GET LIKE COUNT
-    ========================= */
-
-    const {
-      count,
-      error: likeError
-    } =
-      await window.supabaseClient
-        .from("likes")
-        .select("*", {
-          count: "exact",
-          head: true
-        })
-        .eq(
-          "story_id",
-          story.id
-        );
-
-
-    if (likeError) {
-
-      console.error(
-        "Like count error:",
-        likeError
-      );
-
-    }
-
-
-    totalLikes +=
-      count || 0;
-
-
-    /* =========================
-       STORY IMAGE
-    ========================= */
-
-    let imageHtml =
-      "";
-
-
-    if (story.image_url) {
-
-      imageHtml = `
-
-        <img
-          src="${escapeHtml(
-            story.image_url
-          )}"
-          alt="Story image"
-          class="profile-story-image"
-        >
-
-      `;
-
-    }
-
-
-    /* =========================
-       STORY VIDEO
-    ========================= */
-
-    let videoHtml =
-      "";
-
-
-    if (story.video_url) {
-
-      videoHtml = `
-
-        <video
-          class="profile-story-video"
-          controls
-          preload="metadata"
-          width="100%"
-        >
-
-          <source
-            src="${escapeHtml(
-              story.video_url
-            )}"
-            type="video/mp4"
-          >
-
-          Your browser does not
-          support video playback.
-
-        </video>
-
-      `;
-
-}
-     /* =========================
-       STORY DATE
-    ========================= */
-
-    let dateText =
-      "";
-
-
-    if (story.created_at) {
-
-      dateText =
-        new Date(
-          story.created_at
-        ).toLocaleDateString();
-
-    }
-
-
-    /* =========================
-       STORY CARD
-    ========================= */
-
-    storiesContainer.innerHTML += `
-
-      <article
-        class="profile-story-card"
-      >
-
-        ${imageHtml}
-
-        ${videoHtml}
-
-        <div
-          class="profile-story-content"
-        >
-
-          <p
-            class="profile-story-category"
-          >
-
-            ${escapeHtml(
-              story.category ||
-              "Other"
-            )}
-
-          </p>
-
-
-          <h3>
-
-            ${escapeHtml(
-              story.title ||
-              "Untitled Story"
-            )}
-
-          </h3>
-
-
-          <p>
-
-            ${escapeHtml(
-              story.content ||
-              ""
-            )}
-
-          </p>
-
-
-          <small>
-
-            ${escapeHtml(
-              dateText
-            )}
-
-          </small>
-
-
-          <br><br>
-
-
-          <a
-            href="stories.html#story-${encodeURIComponent(
-              story.id
-            )}"
-            class="read-story-link"
-          >
-
-            View Story
-
-          </a>
-
-        </div>
-
-      </article>
-
-    `;
-
-  }
-
-
-  /* =============================
-     TOTAL LIKES
-  ============================= */
-
-  if (likeCount) {
-
-    likeCount.textContent =
-      totalLikes;
-
-  }
+  return currentUser;
 
 }
 
 
 /* =================================
+   LOAD PUBLIC PROFILE
+================================= */
+
+async function loadPublicProfile() {
+
+  const loading =
+    document.getElementById(
+      "profile-loading"
+    );
+
+  const content =
+    document.getElementById(
+      "profile-content"
+    );
+
+
+  try {
+
+    const profileId =
+      getProfileId();
+
+
+    if (!profileId) {
+
+      showError(
+        "No profile was specified."
+      );
+
+      return;
+
+    }
+
+
+    if (!window.supabaseClient) {
+
+      showError(
+        "Supabase is not connected."
+      );
+
+      return;
+
+    }
+
+
+    /* =============================
+       GET PROFILE
+    ============================= */
+
+    const {
+      data: profile,
+      error: profileError
+    } =
+      await window.supabaseClient
+        .from("profiles")
+        .select("*")
+        .eq(
+          "id",
+          profileId
+        )
+        .maybeSingle();
+
+
+    if (profileError) {
+
+      showError(
+        profileError.message
+      );
+
+      return;
+
+    }
+
+
+    if (!profile) {
+
+      showError(
+        "This profile does not exist."
+      );
+
+      return;
+
+    }
+
+
+    /* =============================
+       PROFILE NAME
+    ============================= */
+
+    const nameElement =
+      document.getElementById(
+        "profile-name"
+      );
+
+
+    if (nameElement) {
+
+      nameElement.textContent =
+        profile.name ||
+        profile.username ||
+        profile.full_name ||
+        profile.display_name ||
+        "Worldwide Life Matter Member";
+
+    }
+
+
+    /* =============================
+       PROFILE PHOTO
+    ============================= */
+
+    const avatar =
+      document.getElementById(
+        "profile-avatar"
+      );
+
+
+    if (
+      avatar &&
+      profile.avatar_url
+    ) {
+
+      avatar.src =
+        profile.avatar_url;
+
+    }
+
+
+    /* =============================
+       COUNTRY
+    ============================= */
+
+    const country =
+      document.getElementById(
+        "profile-country"
+      );
+
+
+    if (country) {
+
+      country.textContent =
+        profile.country ||
+        "Not provided";
+
+    }
+
+
+    /* =============================
+       BIO
+    ============================= */
+
+    const bio =
+      document.getElementById(
+        "profile-bio"
+      );
+
+
+    if (bio) {
+
+      bio.textContent =
+        profile.bio ||
+        "No bio available.";
+
+  }
+     /* =================================
    FOLLOW SYSTEM
 ================================= */
 
-async function setupFollowSystem(
-  profileId
-) {
+async function setupFollowSystem(profileId) {
 
   const followersCount =
     document.getElementById(
@@ -1047,111 +903,116 @@ async function setupFollowSystem(
 
         }
 
+
       } else {
 
-      /* =========================
-   FOLLOW
-========================= */
+        /* =========================
+           FOLLOW
+        ========================= */
 
-const {
-  error
-} =
-  await window.supabaseClient
-    .from("followers")
-    .insert([
-      {
-        follower_id:
-          currentUser.id,
+        const {
+          error
+        } =
+          await window.supabaseClient
+            .from("followers")
+            .insert([
+              {
+                follower_id:
+                  currentUser.id,
 
-        following_id:
-          profileId
-      }
-    ]);
+                following_id:
+                  profileId
+              }
+            ]);
 
 
-if (error) {
+        if (error) {
 
-  console.error(
-    "Follow error:",
-    error
-  );
+          console.error(
+            "Follow error:",
+            error
+          );
 
-  if (followMessage) {
+          if (followMessage) {
 
-    followMessage.textContent =
-      error.message;
+            followMessage.textContent =
+              error.message;
 
-  }
+          }
 
-} else {
+        } else {
 
-  /* =========================
-     CREATE FOLLOW NOTIFICATION
-  ========================= */
+          /* =========================
+             FOLLOW NOTIFICATION
+          ========================= */
 
-  const {
-    error: notificationError
-  } =
-    await window.supabaseClient
-      .from("notifications")
-      .insert([
-        {
-          user_id:
-            profileId,
+          const {
+            error: notificationError
+          } =
+            await window.supabaseClient
+              .from("notifications")
+              .insert([
+                {
+                  user_id:
+                    profileId,
 
-          actor_id:
-            currentUser.id,
+                  actor_id:
+                    currentUser.id,
 
-          type:
-            "follow",
+                  type:
+                    "follow",
 
-          message:
-            "Someone started following you.",
+                  message:
+                    "Someone started following you.",
 
-          reference_id:
-            currentUser.id,
+                  reference_id:
+                    currentUser.id,
 
-          is_read:
-            false
+                  is_read:
+                    false
+                }
+              ]);
+
+
+          if (notificationError) {
+
+            console.error(
+              "Follow notification error:",
+              notificationError
+            );
+
+          }
+
+
+          followButton.textContent =
+            "Following";
+
+          followButton.dataset.following =
+            "true";
+
+
+          const currentCount =
+            parseInt(
+              followersCount.textContent
+            ) || 0;
+
+
+          followersCount.textContent =
+            currentCount + 1;
+
         }
-      ]);
+
+      }
 
 
-  if (notificationError) {
+      followButton.disabled =
+        false;
 
-    console.error(
-      "Follow notification error:",
-      notificationError
-    );
+    };
 
-  }
+}
 
 
-  /* =========================
-     UPDATE BUTTON
-  ========================= */
-
-  followButton.textContent =
-    "Following";
-
-  followButton.dataset.following =
-    "true";
-
-
-  /* =========================
-     UPDATE FOLLOWER COUNT
-  ========================= */
-
-  const currentCount =
-    parseInt(
-      followersCount.textContent
-    ) || 0;
-
-
-  followersCount.textContent =
-    currentCount + 1;
-
-       }
 /* =================================
    START PUBLIC PROFILE
 ================================= */
@@ -1159,10 +1020,6 @@ if (error) {
 async function startPublicProfile() {
 
   try {
-
-    /* =============================
-       CHECK SUPABASE
-    ============================= */
 
     if (!window.supabaseClient) {
 
@@ -1174,10 +1031,6 @@ async function startPublicProfile() {
 
     }
 
-
-    /* =============================
-       GET PROFILE ID
-    ============================= */
 
     const profileId =
       getProfileId();
@@ -1194,23 +1047,9 @@ async function startPublicProfile() {
     }
 
 
-    /* =============================
-       GET CURRENT USER
-    ============================= */
-
     await getCurrentUser();
 
-
-    /* =============================
-       LOAD PROFILE
-    ============================= */
-
     await loadPublicProfile();
-
-
-    /* =============================
-       LOAD FOLLOW SYSTEM
-    ============================= */
 
     await setupFollowSystem(
       profileId
@@ -1235,7 +1074,7 @@ async function startPublicProfile() {
 
 
 /* =================================
-   START WHEN PAGE IS READY
+   START PAGE
 ================================= */
 
 if (
@@ -1253,4 +1092,3 @@ if (
   startPublicProfile();
 
 }
-     
