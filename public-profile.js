@@ -1049,7 +1049,7 @@ async function setupFollowSystem(
 
       } else {
 
-        /* =========================
+      /* =========================
    FOLLOW
 ========================= */
 
@@ -1086,27 +1086,6 @@ if (error) {
 } else {
 
   /* =========================
-     UPDATE FOLLOW BUTTON
-  ========================= */
-
-  followButton.textContent =
-    "Following";
-
-  followButton.dataset.following =
-    "true";
-
-
-  const currentCount =
-    parseInt(
-      followersCount.textContent
-    ) || 0;
-
-
-  followersCount.textContent =
-    currentCount + 1;
-
-
-  /* =========================
      CREATE FOLLOW NOTIFICATION
   ========================= */
 
@@ -1120,11 +1099,14 @@ if (error) {
           user_id:
             profileId,
 
-          message:
-            "Someone started following you.",
+          actor_id:
+            currentUser.id,
 
           type:
             "follow",
+
+          message:
+            "Someone started following you.",
 
           reference_id:
             currentUser.id,
@@ -1144,15 +1126,32 @@ if (error) {
 
   }
 
-}
+
+  /* =========================
+     UPDATE BUTTON
+  ========================= */
+
+  followButton.textContent =
+    "Following";
+
+  followButton.dataset.following =
+    "true";
 
 
-followButton.disabled =
-  false;
+  /* =========================
+     UPDATE FOLLOWER COUNT
+  ========================= */
 
-};
+  const currentCount =
+    parseInt(
+      followersCount.textContent
+    ) || 0;
 
-      }
+
+  followersCount.textContent =
+    currentCount + 1;
+
+       }
 /* =================================
    START PUBLIC PROFILE
 ================================= */
