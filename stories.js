@@ -1,32 +1,312 @@
-alert("stories.js loaded");
+/* =================================
+   WORLDWIDE LIFE MATTER
+   STORIES JAVASCRIPT
+   PART 1 OF 3
+================================= */
 
 let currentUser = null;
 
 
-/* ================================
+/* =================================
    GET CURRENT USER
-================================ */
+================================= */
 
 async function getCurrentUser() {
+
+  if (!window.supabaseClient) {
+
+    console.error(
+      "Supabase client not found."
+    );
+
+    currentUser = null;
+
+    return null;
+
+  }
+
 
   const {
     data,
     error
-  } = await window.supabaseClient.auth.getUser();
+  } =
+    await window.supabaseClient
+      .auth
+      .getUser();
+
 
   if (error) {
 
-    console.error("User error:", error);
+    console.error(
+      "User error:",
+      error
+    );
 
     currentUser = null;
+
+    return null;
+
+  }
+
+
+  currentUser =
+    data.user || null;
+
+  return currentUser;
+
+}
+
+
+/* =================================
+   ESCAPE HTML
+================================= */
+
+function escapeHtml(value) {
+
+  const div =
+    document.createElement("div");
+
+  div.textContent =
+    value == null
+      ? ""
+      : String(value);
+
+  return div.innerHTML;
+
+}
+
+
+/* =================================
+   LOAD STORIES
+================================= */
+
+async function loadStories() {
+
+  const container =
+    document.getElementById(
+      "stories-list"
+    );
+
+  const searchInput =
+    document.getElementById(
+      "search"
+    );
+
+
+  if (!container) {
+
+    console.error(
+      "stories-list element not found."
+    );
 
     return;
 
   }
 
-  currentUser = data.user || null;
 
-}
+  const search =
+    searchInput
+      ? searchInput.value
+          .trim()
+          .toLowerCase()
+      : "";
+
+
+  container.innerHTML =
+    "<p>Loading stories...</p>";
+
+
+  if (!window.supabaseClient) {
+
+    container.innerHTML =
+      "<p>Supabase is not connected.</p>";
+
+    return;
+
+  }
+
+
+  /* =============================
+     GET STORIES
+  ============================= */
+
+  const {
+    data: stories,
+    error
+  } =
+    await window.supabaseClient
+      .from("stories")
+      .select("*")
+      .order(
+        "created_at",
+        {
+          ascending: false
+        }
+      );
+
+
+  if (error) {
+
+    console.error(
+      "Stories error:",
+      error
+    );
+
+    container.innerHTML =
+      "<p>Error loading stories: " +
+      escapeHtml(error.message) +
+      "</p>";
+
+    return;
+
+  }
+
+
+  if (
+    !stories ||
+    stories.length === 0
+  ) {
+
+    container.innerHTML =
+      "<p>No stories have been shared yet.</p>";
+
+    return;
+
+  }
+
+
+  container.innerHTML = "";
+
+
+  /* =============================
+     BUILD EACH STORY
+  ============================= */
+
+  for (
+    const story of stories
+  ) {
+
+    /* =========================
+       SEARCH FILTER
+    ========================= */
+
+    const title =
+      (
+        story.title ||
+        ""
+      ).toLowerCase();
+
+    const content =
+      (
+        story.content ||
+        ""
+      ).toLowerCase();
+
+    const author =
+      (
+        story.author ||
+        ""
+      ).toLowerCase();
+
+
+    if (
+      search &&
+      !title.includes(search) &&
+      !content.includes(search) &&
+      !author.includes(search)
+    ) {
+
+      continue;
+
+    }
+
+
+    /* =========================
+       LIKE COUNT
+    ========================= */
+
+    let likeCount = 0;
+
+
+    const {
+      count,
+      error: likeCountError
+    } =
+      await window.supabaseClient
+        .from("likes")
+        .select("*", {
+          count: "exact",
+          head: true
+        })
+        .eq(
+          "story_id",
+          story.id
+        );
+
+
+    if (likeCountError) {
+
+      console.error(
+        "Like count error:",
+        likeCountError
+      );
+
+    } else {
+
+      likeCount =
+        count || 0;
+
+    }
+
+
+    /* =========================
+       CHECK CURRENT USER LIKE
+    ========================= */
+
+    let liked = false;
+
+
+    if (currentUser) {
+
+      const {
+        data: likeData,
+        error: likeCheckError
+      } =
+        await window.supabaseClient
+          .from("likes")
+          .select("id")
+          .eq(
+            "story_id",
+            story.id
+          )
+          .eq(
+            "user_id",
+            currentUser.id
+          );
+
+
+      if (likeCheckError) {
+
+        console.error(
+          "Like check error:",
+          likeCheckError
+        );
+
+      }
+
+
+      liked =
+        !!(
+          likeData &&
+          likeData.length > 0
+        );
+
+  }
+     /* ================================
+   WORLDWIDE LIFE MATTER
+   STORIES
+   PART 2 OF 3
+================================= */
 
 
 /* ================================
@@ -41,6 +321,7 @@ async function loadStories() {
   const searchInput =
     document.getElementById("search");
 
+
   if (!container) {
 
     console.error(
@@ -51,11 +332,10 @@ async function loadStories() {
 
   }
 
+
   const search =
     searchInput
-      ? searchInput.value
-          .trim()
-          .toLowerCase()
+      ? searchInput.value.trim().toLowerCase()
       : "";
 
 
@@ -70,21 +350,24 @@ async function loadStories() {
     await window.supabaseClient
       .from("stories")
       .select("*")
-      .order("created_at", {
-        ascending: false
-      });
+      .order(
+        "created_at",
+        {
+          ascending: false
+        }
+      );
 
 
   if (error) {
 
     console.error(
-      "Stories error:",
+      "Stories loading error:",
       error
     );
 
     container.innerHTML =
       "<p>Error loading stories: " +
-      error.message +
+      escapeHtml(error.message) +
       "</p>";
 
     return;
@@ -92,7 +375,10 @@ async function loadStories() {
   }
 
 
-  if (!stories || stories.length === 0) {
+  if (
+    !stories ||
+    stories.length === 0
+  ) {
 
     container.innerHTML =
       "<p>No stories have been shared yet.</p>";
@@ -105,12 +391,13 @@ async function loadStories() {
   container.innerHTML = "";
 
 
-  for (const story of stories) {
+  for (
+    const story of stories
+  ) {
 
-
-    /* ================================
+    /* ==============================
        SEARCH FILTER
-    ================================= */
+    ============================== */
 
     const title =
       (story.title || "")
@@ -137,15 +424,16 @@ async function loadStories() {
     }
 
 
-    /* ================================
-       GET LIKE COUNT
-    ================================= */
+    /* ==============================
+       LIKE COUNT
+    ============================== */
 
     let likeCount = 0;
 
+
     const {
       count,
-      error: likeCountError
+      error: likeError
     } =
       await window.supabaseClient
         .from("likes")
@@ -159,7 +447,14 @@ async function loadStories() {
         );
 
 
-    if (!likeCountError) {
+    if (likeError) {
+
+      console.error(
+        "Like count error:",
+        likeError
+      );
+
+    } else {
 
       likeCount =
         count || 0;
@@ -167,9 +462,9 @@ async function loadStories() {
     }
 
 
-    /* ================================
-       CHECK IF CURRENT USER LIKED
-    ================================= */
+    /* ==============================
+       CHECK CURRENT USER LIKE
+    ============================== */
 
     let liked = false;
 
@@ -177,7 +472,8 @@ async function loadStories() {
     if (currentUser) {
 
       const {
-        data: likeData
+        data: likeData,
+        error: userLikeError
       } =
         await window.supabaseClient
           .from("likes")
@@ -192,6 +488,16 @@ async function loadStories() {
           );
 
 
+      if (userLikeError) {
+
+        console.error(
+          "User like check error:",
+          userLikeError
+        );
+
+      }
+
+
       liked =
         !!(
           likeData &&
@@ -201,9 +507,9 @@ async function loadStories() {
     }
 
 
-    /* ================================
+    /* ==============================
        LOAD COMMENTS
-    ================================= */
+    ============================== */
 
     const {
       data: comments,
@@ -224,8 +530,7 @@ async function loadStories() {
         );
 
 
-    let commentsHtml =
-      "";
+    let commentsHtml = "";
 
 
     if (
@@ -233,7 +538,6 @@ async function loadStories() {
       comments &&
       comments.length > 0
     ) {
-
 
       comments.forEach(
         (comment) => {
@@ -265,16 +569,17 @@ async function loadStories() {
         }
       );
 
-
     } else {
 
       commentsHtml =
         "<p>No comments yet.</p>";
 
-     }
-         /* ================================
+    }
+
+
+    /* ==============================
        AUTHOR PROFILE LINK
-    ================================= */
+    ============================== */
 
     let authorHtml =
       escapeHtml(
@@ -304,12 +609,11 @@ async function loadStories() {
     }
 
 
-    /* ================================
+    /* ==============================
        IMAGE
-    ================================= */
+    ============================== */
 
-    let imageHtml =
-      "";
+    let imageHtml = "";
 
 
     if (story.image_url) {
@@ -329,12 +633,11 @@ async function loadStories() {
     }
 
 
-    /* ================================
+    /* ==============================
        VIDEO
-    ================================= */
+    ============================== */
 
-    let videoHtml =
-      "";
+    let videoHtml = "";
 
 
     if (story.video_url) {
@@ -364,168 +667,157 @@ async function loadStories() {
 
       `;
 
-    }
+         }
+     /* ==============================
+   COMMENT BOX
+============================== */
+
+let commentBoxHtml = "";
 
 
-    /* ================================
-       COMMENT BOX
-    ================================= */
+if (currentUser) {
 
-    let commentBoxHtml =
-      "";
+  commentBoxHtml = `
 
+    <textarea
+      id="comment-${escapeHtml(story.id)}"
+      placeholder="Write a comment..."
+    ></textarea>
 
-    if (currentUser) {
+    <br><br>
 
-      commentBoxHtml = `
+    <button
+      onclick="addComment('${escapeHtml(story.id)}')"
+    >
+      Post Comment
+    </button>
 
-        <textarea
-          id="comment-${escapeHtml(
-            story.id
-          )}"
-          placeholder="Write a comment..."
-        ></textarea>
+  `;
 
-        <br><br>
+} else {
 
-        <button
-          onclick="addComment('${escapeHtml(
-            story.id
-          )}')"
-        >
-          Post Comment
-        </button>
+  commentBoxHtml = `
 
-      `;
+    <p>
+      <em>
+        Log in to comment.
+      </em>
+    </p>
 
-    } else {
+  `;
 
-      commentBoxHtml = `
-
-        <p>
-
-          <em>
-            Log in to comment.
-          </em>
-
-        </p>
-
-      `;
-
-    }
+}
 
 
-    /* ================================
-       STORY HTML
-    ================================= */
+/* ==============================
+   STORY CARD
+============================== */
 
-    container.innerHTML += `
+container.innerHTML += `
 
-      <div
-        class="story"
-        id="story-${escapeHtml(story.id)}"
-      >
+  <div
+    class="story"
+    id="story-${escapeHtml(story.id)}"
+  >
 
-        ${imageHtml}
+    ${imageHtml}
 
-        ${videoHtml}
-
-
-        <p>
-
-          <strong>
-            Category:
-          </strong>
-
-          ${escapeHtml(
-            story.category ||
-            "Other"
-          )}
-
-        </p>
+    ${videoHtml}
 
 
-        <h2>
+    <p>
 
-          ${escapeHtml(
-            story.title ||
-            "Untitled Story"
-          )}
+      <strong>
+        Category:
+      </strong>
 
-        </h2>
+      ${escapeHtml(
+        story.category ||
+        "Other"
+      )}
 
-
-        <p>
-
-          ${escapeHtml(
-            story.content ||
-            ""
-          )}
-
-        </p>
+    </p>
 
 
-        <small>
+    <h2>
 
-          By:
-          ${authorHtml}
+      ${escapeHtml(
+        story.title ||
+        "Untitled Story"
+      )}
 
-        </small>
-
-
-        <br><br>
-
-
-        <button
-          onclick="toggleLike('${escapeHtml(
-            story.id
-          )}')"
-        >
-
-          ${
-            liked
-              ? "💔 Unlike"
-              : "❤️ Like"
-          }
-
-        </button>
+    </h2>
 
 
-        <span>
+    <p>
 
-          ${likeCount}
-          Likes
+      ${escapeHtml(
+        story.content ||
+        ""
+      )}
 
-        </span>
-
-
-        <h3>
-          Comments
-        </h3>
+    </p>
 
 
-        ${commentsHtml}
+    <small>
+
+      By:
+      ${authorHtml}
+
+    </small>
 
 
-        ${commentBoxHtml}
+    <br><br>
 
 
-        <hr>
+    <button
+      onclick="toggleLike('${escapeHtml(story.id)}')"
+    >
 
-      </div>
+      ${
+        liked
+          ? "💔 Unlike"
+          : "❤️ Like"
+      }
 
-    `;
+    </button>
+
+
+    <span>
+
+      ${likeCount}
+      Likes
+
+    </span>
+
+
+    <h3>
+      Comments
+    </h3>
+
+
+    ${commentsHtml}
+
+
+    ${commentBoxHtml}
+
+
+    <hr>
+
+  </div>
+
+`;
 
   }
 
-         }
+}
+
+
 /* ================================
    LIKE STORY
 ================================ */
 
-async function toggleLike(
-  storyId
-) {
+async function toggleLike(storyId) {
 
   if (!currentUser) {
 
@@ -571,31 +863,124 @@ async function toggleLike(
     data.length > 0
   ) {
 
-    await window.supabaseClient
-      .from("likes")
-      .delete()
-      .eq(
-        "story_id",
-        storyId
-      )
-      .eq(
-        "user_id",
-        currentUser.id
+    const {
+      error: deleteError
+    } =
+      await window.supabaseClient
+        .from("likes")
+        .delete()
+        .eq(
+          "story_id",
+          storyId
+        )
+        .eq(
+          "user_id",
+          currentUser.id
+        );
+
+
+    if (deleteError) {
+
+      alert(
+        deleteError.message
       );
+
+      return;
+
+    }
 
   } else {
 
-    await window.supabaseClient
-      .from("likes")
-      .insert([
-        {
-          story_id:
-            storyId,
+    const {
+      error: insertError
+    } =
+      await window.supabaseClient
+        .from("likes")
+        .insert([
+          {
+            story_id:
+              storyId,
 
-          user_id:
-            currentUser.id
-        }
-      ]);
+            user_id:
+              currentUser.id
+          }
+        ]);
+
+
+    if (insertError) {
+
+      alert(
+        insertError.message
+      );
+
+      return;
+
+    }
+
+
+    /* ==============================
+       CREATE LIKE NOTIFICATION
+    ============================== */
+
+    const {
+      data: story,
+      error: storyError
+    } =
+      await window.supabaseClient
+        .from("stories")
+        .select("user_id")
+        .eq(
+          "id",
+          storyId
+        )
+        .maybeSingle();
+
+
+    if (
+      !storyError &&
+      story &&
+      story.user_id &&
+      story.user_id !== currentUser.id
+    ) {
+
+      const {
+        error: notificationError
+      } =
+        await window.supabaseClient
+          .from("notifications")
+          .insert([
+            {
+              user_id:
+                story.user_id,
+
+              actor_id:
+                currentUser.id,
+
+              type:
+                "like",
+
+              message:
+                "Someone liked your story.",
+
+              reference_id:
+                storyId,
+
+              is_read:
+                false
+            }
+          ]);
+
+
+      if (notificationError) {
+
+        console.error(
+          "Like notification error:",
+          notificationError
+        );
+
+      }
+
+    }
 
   }
 
@@ -609,9 +994,7 @@ async function toggleLike(
    ADD COMMENT
 ================================ */
 
-async function addComment(
-  storyId
-) {
+async function addComment(storyId) {
 
   if (!currentUser) {
 
@@ -685,30 +1068,76 @@ async function addComment(
   }
 
 
+  /* ==============================
+     GET STORY OWNER
+  ============================== */
+
+  const {
+    data: story,
+    error: storyError
+  } =
+    await window.supabaseClient
+      .from("stories")
+      .select("user_id")
+      .eq(
+        "id",
+        storyId
+      )
+      .maybeSingle();
+
+
+  /* ==============================
+     CREATE COMMENT NOTIFICATION
+  ============================== */
+
+  if (
+    !storyError &&
+    story &&
+    story.user_id &&
+    story.user_id !== currentUser.id
+  ) {
+
+    const {
+      error: notificationError
+    } =
+      await window.supabaseClient
+        .from("notifications")
+        .insert([
+          {
+            user_id:
+              story.user_id,
+
+            actor_id:
+              currentUser.id,
+
+            type:
+              "comment",
+
+            message:
+              "Someone commented on your story.",
+
+            reference_id:
+              storyId,
+
+            is_read:
+              false
+          }
+        ]);
+
+
+    if (notificationError) {
+
+      console.error(
+        "Comment notification error:",
+        notificationError
+      );
+
+    }
+
+  }
+
+
   await loadStories();
-
-}
-
-
-/* ================================
-   ESCAPE HTML
-================================ */
-
-function escapeHtml(
-  value
-) {
-
-  const div =
-    document.createElement(
-      "div"
-    );
-
-  div.textContent =
-    value == null
-      ? ""
-      : String(value);
-
-  return div.innerHTML;
 
 }
 
@@ -719,15 +1148,39 @@ function escapeHtml(
 
 function openStoryFromNotification() {
 
+  const hash =
+    window.location.hash;
+
+
+  if (
+    !hash ||
+    !hash.startsWith("#story-")
+  ) {
+
+    return;
+
+  }
+
+
   const storyId =
-    window.location.hash.replace(
-      "#story-",
-      ""
+    decodeURIComponent(
+      hash.substring(
+        "#story-".length
+      )
     );
 
+
   if (!storyId) {
+
     return;
+
   }
+
+
+  let attempts = 0;
+
+  const maxAttempts = 40;
+
 
   function findStory() {
 
@@ -736,28 +1189,56 @@ function openStoryFromNotification() {
         "story-" + storyId
       );
 
-    if (!storyElement) {
-      // Stories may still be loading.
-      setTimeout(findStory, 300);
+
+    if (storyElement) {
+
+      storyElement.scrollIntoView({
+        behavior: "smooth",
+        block: "start"
+      });
+
+
+      storyElement.style.outline =
+        "3px solid orange";
+
+
+      setTimeout(() => {
+
+        storyElement.style.outline =
+          "";
+
+      }, 3000);
+
+
       return;
+
     }
 
-    storyElement.scrollIntoView({
-      behavior: "smooth",
-      block: "start"
-    });
 
-    storyElement.style.outline =
-      "3px solid orange";
+    attempts++;
 
-    setTimeout(() => {
 
-      storyElement.style.outline = "";
+    if (attempts < maxAttempts) {
 
-    }, 3000);
+      setTimeout(
+        findStory,
+        250
+      );
+
+    } else {
+
+      console.error(
+        "Story not found:",
+        storyId
+      );
+
+    }
+
   }
 
+
   findStory();
+
 }
 
 
@@ -767,11 +1248,33 @@ function openStoryFromNotification() {
 
 async function startStoriesPage() {
 
-  await getCurrentUser();
+  try {
 
-  await loadStories();
+    if (!window.supabaseClient) {
 
-  openStoryFromNotification();
+      console.error(
+        "Supabase client not found."
+      );
+
+      return;
+
+    }
+
+
+    await getCurrentUser();
+
+    await loadStories();
+
+    openStoryFromNotification();
+
+  } catch (error) {
+
+    console.error(
+      "Stories startup error:",
+      error
+    );
+
+  }
 
 }
 
@@ -780,13 +1283,20 @@ async function startStoriesPage() {
    SEARCH
 ================================ */
 
-const searchInput =
-  document.getElementById(
-    "search"
-  );
+function setupSearch() {
+
+  const searchInput =
+    document.getElementById(
+      "search"
+    );
 
 
-if (searchInput) {
+  if (!searchInput) {
+
+    return;
+
+  }
+
 
   searchInput.addEventListener(
     "input",
@@ -797,7 +1307,29 @@ if (searchInput) {
 
 
 /* ================================
-   START
+   START WHEN PAGE IS READY
 ================================ */
 
-startStoriesPage();
+if (
+  document.readyState ===
+  "loading"
+) {
+
+  document.addEventListener(
+    "DOMContentLoaded",
+    () => {
+
+      setupSearch();
+
+      startStoriesPage();
+
+    }
+  );
+
+} else {
+
+  setupSearch();
+
+  startStoriesPage();
+
+  }
